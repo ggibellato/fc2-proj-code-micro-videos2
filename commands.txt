@@ -1,0 +1,14 @@
+docker-compose up 
+
+docker-compose exec app bash
+
+
+
+
+==============
+
+php artisan make:model Genre --all
+php artisan route:list
+
+php artisan migrate --path=/database/migrations/my_migration.php
+php artisan migrate:refresh --seed
