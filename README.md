@@ -6,6 +6,8 @@
 
 Microsserviço de catálogo
 
+Primeira parte do desafio
+
 ## Rodar a aplicação
 
 #### Crie os containers com Docker
