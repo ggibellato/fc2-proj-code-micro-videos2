@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class GenreController extends Controller
 {
+
+    private $rules = [
+        'name' => 'required|max:255',
+        'is_active' => 'boolean'
+    ];
+
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +21,7 @@ class GenreController extends Controller
      */
     public function index()
     {
-        //
+        return Genre::all();
     }
 
     /**
@@ -26,18 +32,19 @@ class GenreController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->validate($request, $this->rules);
+        return Genre::create($request->all());
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Genre  $genre
+     * @param  \App\Models\Genre  $genre
      * @return \Illuminate\Http\Response
      */
     public function show(Genre $genre)
     {
-        //
+        return $genre;
     }
 
     /**
@@ -49,7 +56,9 @@ class GenreController extends Controller
      */
     public function update(Request $request, Genre $genre)
     {
-        //
+        $this->validate($request, $this->rules);
+        $genre->update($request->all());
+        return $genre;
     }
 
     /**
@@ -60,6 +69,7 @@ class GenreController extends Controller
      */
     public function destroy(Genre $genre)
     {
-        //
+        $genre->delete();
+        return response()->noContent(); //204
     }
 }

@@ -1,0 +1,57 @@
+### get all
+GET http://localhost:8000/api/categories HTTP/1.1
+
+### get category does not exit
+GET http://localhost:8000/api/categories/0 HTTP/1.1
+Accept: application/json
+
+### get category that exist
+GET http://localhost:8000/api/categories/10 HTTP/1.1
+
+### create a category
+POST http://localhost:8000/api/categories HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "category 1",
+    "description": "minha description",
+    "is_active": false
+}
+
+### try create category data invalid
+POST http://localhost:8000/api/categories HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "description": "minha description",
+    "is_active": false
+}
+
+### try udpate category that does not exist
+PUT http://localhost:8000/api/categories/0 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "cateroy update 3"
+}
+
+
+### try udpate category that does not exist
+PUT http://localhost:8000/api/categories/102 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "cateroy update 3"
+}
+
+### try delete category that does not exist
+DELETE http://localhost:8000/api/categories/0 HTTP/1.1
+Accept: application/json
+
+### delete a category
+DELETE http://localhost:8000/api/categories/101 HTTP/1.1
+Accept: application/json

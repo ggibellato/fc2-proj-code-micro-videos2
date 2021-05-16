@@ -1,0 +1,55 @@
+### get all
+GET http://localhost:8000/api/genres HTTP/1.1
+
+### get genre does not exist
+GET http://localhost:8000/api/genres/0 HTTP/1.1
+Accept: application/json
+
+### get a specific genre
+GET http://localhost:8000/api/genres/2 HTTP/1.1
+
+### add a new genre
+POST http://localhost:8000/api/genres HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "genre 1",
+    "is_active": true
+}
+
+### add a new genre data invalid
+POST http://localhost:8000/api/categories HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "is_active": false
+}
+
+
+### try udpate genre that does not exist
+PUT http://localhost:8000/api/genres/0 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "genre update 3"
+}
+
+### udpate genre that does not exist
+PUT http://localhost:8000/api/genres/3 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "genre update 3x"
+}
+
+### try delete genre that does not exist
+DELETE http://localhost:8000/api/genres/0 HTTP/1.1
+Accept: application/json
+
+### delete a category
+DELETE http://localhost:8000/api/genres/8 HTTP/1.1
+Accept: application/json
