@@ -6,7 +6,7 @@ GET http://localhost:8000/api/genres/0 HTTP/1.1
 Accept: application/json
 
 ### get a specific genre
-GET http://localhost:8000/api/genres/2 HTTP/1.1
+GET http://localhost:8000/api/genres/f9e13962-50da-4b48-910c-b6c772e92015 HTTP/1.1
 
 ### add a new genre
 POST http://localhost:8000/api/genres HTTP/1.1
