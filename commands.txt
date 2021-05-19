@@ -21,6 +21,7 @@ php artisan make:request GenreRequest
 
 
 vendor/bin/phpunit
+vendor/bin/phpunit --filter testUpdate CategoryControllerTest /var/www/tests/Feature/Http/Controllers/Api/CategoryControllerTest.php
 
 php artisan make:test [ClassName] [--unit]
 
