@@ -13,8 +13,8 @@ class GenreTest extends TestCase
     public function testList()
     {
         factory(Genre::class, 1)->create();
-        $categories = Genre::all();
-        $genreKey = array_keys($categories->first()->getAttributes());
+        $genre = Genre::all();
+        $genreKey = array_keys($genre->first()->getAttributes());
         $this->assertCount(1, Genre::all());
         $this->assertEqualsCanonicalizing(
             [

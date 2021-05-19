@@ -87,9 +87,9 @@ class CategoryTest extends TestCase
 
     public function testDelete(){
         /** @var Category $category */
-        $genre = factory(Category::class, 5)->create()->first();
+        $category = factory(Category::class, 5)->create()->first();
         $this->assertCount(5, Category::all());
-        $genre->delete();
+        $category->delete();
         $this->assertCount(4, Category::all());
     }
 }
