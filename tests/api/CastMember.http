@@ -1,0 +1,56 @@
+### get all
+GET http://localhost:8000/api/cast_members HTTP/1.1
+                              
+### get cast member does not exist
+GET http://localhost:8000/api/cast_members/0 HTTP/1.1
+Accept: application/json
+
+### get a specific cast member
+GET http://localhost:8000/api/cast_members/499d94b3-a46d-4a7b-8fbc-7575f14dd294 HTTP/1.1
+
+### add a new cast member
+POST http://localhost:8000/api/cast_members HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "cast member 1",
+    "type": 2
+}
+
+### add a new cast member data invalid
+POST http://localhost:8000/api/cast_members HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "type": 1
+}
+
+
+### try udpate cast member that does not exist
+PUT http://localhost:8000/api/cast_members/0 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "cast member update 3"
+}
+
+### try udpate cast member that does not exist
+PUT http://localhost:8000/api/cast_members/499d94b3-a46d-4a7b-8fbc-7575f14dd294 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "cast member update 3"
+}
+
+
+### try delete cast member that does not exist
+DELETE http://localhost:8000/api/cast_members/0 HTTP/1.1
+Accept: application/json
+
+### delete a cast member
+DELETE http://localhost:8000/api/cast_members/ef242ef3-49ae-4118-b877-0830810515bc HTTP/1.1
+Accept: application/json

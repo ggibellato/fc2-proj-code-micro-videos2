@@ -19,7 +19,7 @@ Content-Type: application/json
 }
 
 ### add a new genre data invalid
-POST http://localhost:8000/api/categories HTTP/1.1
+POST http://localhost:8000/api/geners HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 
@@ -38,18 +38,18 @@ Content-Type: application/json
 }
 
 ### udpate genre that does not exist
-PUT http://localhost:8000/api/genres/3 HTTP/1.1
+PUT http://localhost:8000/api/genres/52b704b8-bb26-4e67-ae27-ccec93c52f22 HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 
 {
-    "name": "genre update 3x"
+    "is_active": false
 }
 
 ### try delete genre that does not exist
 DELETE http://localhost:8000/api/genres/0 HTTP/1.1
 Accept: application/json
 
-### delete a category
+### delete a genre
 DELETE http://localhost:8000/api/genres/8 HTTP/1.1
 Accept: application/json
