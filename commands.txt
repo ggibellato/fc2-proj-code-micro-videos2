@@ -4,6 +4,7 @@ docker-compose exec app bash
 
 docker-compose exec db mysql --user=root --password micro_videos_db_test
 
+docker exec -it micro-videos-app bash
 
 
 
