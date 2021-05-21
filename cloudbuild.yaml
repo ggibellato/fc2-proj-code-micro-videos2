@@ -5,8 +5,8 @@ steps:
   args: ['-f', 'docker-compose.cloudbuild.yaml', 'up', '-d']
 
 - id: "Rodando composer"
-  name: 'docker/compose'
-  args: ['exec', 'app', 'composer', 'install']
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
 
 - id: "Copiando .env"
   name: 'docker'
