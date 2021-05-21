@@ -8,9 +8,9 @@ steps:
   name: 'docker'
   args: ['ps']
 
-- id: "Rodando composer"
-  name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
+# - id: "Rodando composer"
+#   name: 'docker'
+#   args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
 
 - id: "Copiando .env"
   name: 'docker'
