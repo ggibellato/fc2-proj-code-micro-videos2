@@ -6,7 +6,7 @@ steps:
 
 - id: "Rodando composer"
   name: 'docker/compose'
-  args: ['exec', '-t', 'app', 'composer', 'install']
+  args: ['exec', 'app', 'composer', 'install']
 
 - id: "Copiando .env"
   name: 'docker'
