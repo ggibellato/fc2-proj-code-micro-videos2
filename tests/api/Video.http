@@ -1,0 +1,65 @@
+### get all
+GET http://localhost:8000/api/videos HTTP/1.1
+
+### get genre does not exist
+GET http://localhost:8000/api/videos/0 HTTP/1.1
+Accept: application/json
+
+### get a specific genre
+GET http://localhost:8000/api/videos/020b7971-4a7a-452e-864b-5de89e1fe7c1 HTTP/1.1
+
+### add a new genre
+POST http://localhost:8000/api/videos HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title": "title",
+    "description": "description",
+    "year_launched": 2010,
+    "rating": "L",
+    "duration": 90,
+    "categories_id": ["041647a7-90ca-43a2-b808-a5efb6936456", "0685e0c0-8a6a-40ac-ba00-723e6cc27050"]
+}
+
+### add a new genre data invalid
+POST http://localhost:8000/api/videos HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title": "title",
+    "description": "description"
+}
+
+
+### try udpate genre that does not exist
+PUT http://localhost:8000/api/videos/0 HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title": "genre update 3"
+}
+
+### udpate genre
+PUT http://localhost:8000/api/videos/8b58067c-7000-4b4d-b8f9-811dd2f2ed6b HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title": "title update",
+    "description": "description update",
+    "year_launched": 2020,
+    "rating": "10",
+    "duration": 100,
+    "categories_id": ["09cdcf8d-676d-4dbe-9585-3a27b9a3d2f4", "0685e0c0-8a6a-40ac-ba00-723e6cc27050"]
+}
+
+### try delete genre that does not exist
+DELETE http://localhost:8000/api/videos/0 HTTP/1.1
+Accept: application/json
+
+### delete a genre
+DELETE http://localhost:8000/api/videos/020b7971-4a7a-452e-864b-5de89e1fe7c1 HTTP/1.1
+Accept: application/json
