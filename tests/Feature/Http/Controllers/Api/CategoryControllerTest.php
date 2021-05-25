@@ -70,7 +70,7 @@ class CategoryControllerTest extends TestCase
             'description' => 'description',
             'is_active' => false
         ];
-        $this->assertStore($data, $data + ['description' => 'description', 'is_active' => false]);
+        $this->assertStore($data, $data);
     }
 
     public function testUpdate() {

@@ -88,7 +88,7 @@ class BasicCrudControllerTest extends TestCase
 
     public function testShow() 
     {
-        $obj = $this->controller->show($this->category);
+        $obj = $this->controller->show(1);
         $this->assertEquals(
             CategoryStub::find(1)->toArray(),
             $obj->toArray()
@@ -103,7 +103,7 @@ class BasicCrudControllerTest extends TestCase
             ->shouldReceive('all')
             ->times(2)
             ->andReturn(['name' => 'test_name_update', 'description' => 'test_description_update']);
-        $obj = $this->controller->update($request, $this->category);
+        $obj = $this->controller->update($request, 1);
         $this->assertEquals(
             CategoryStub::find(1)->toArray(),
             $obj->toArray()
@@ -112,7 +112,7 @@ class BasicCrudControllerTest extends TestCase
 
     public function testDestroy()
     {
-        $this->controller->destroy($this->category);
+        $this->controller->destroy(1);
         $this->assertNull(CategoryStub::find(1));
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 abstract class BasicCrudController extends Controller
@@ -35,21 +34,23 @@ abstract class BasicCrudController extends Controller
         return $this->model()::where($keyName, $id)->firstOrFail();
     }
 
-    public function show(Model $model)
+    public function show($id)
     {
-        return $model;
+        return $this->model()::findOrFail($id);
     }
 
-    public function update(Request $request, Model $model)
+    public function update(Request $request, $id)
     {
+        $model = $this->model()::findOrFail($id);
         $this->validate($request, $this->ruleStore());
         $model->update($request->all());
         return $model;
     }
 
-    public function destroy(Model $model)
+    public function destroy($id)
     {
-         $model->delete();
-         return response()->noContent(); //204
+        $model = $this->model()::findOrFail($id);
+        $model->delete();
+        return response()->noContent(); //204
     }
 }

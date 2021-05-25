@@ -6,7 +6,7 @@ GET http://localhost:8000/api/genres/0 HTTP/1.1
 Accept: application/json
 
 ### get a specific genre
-GET http://localhost:8000/api/genres/f9e13962-50da-4b48-910c-b6c772e92015 HTTP/1.1
+GET http://localhost:8000/api/genres/c8cbc657-e686-4261-8854-d18ddb6b3cbe HTTP/1.1
 
 ### add a new genre
 POST http://localhost:8000/api/genres HTTP/1.1
@@ -38,12 +38,12 @@ Content-Type: application/json
 }
 
 ### udpate genre that does not exist
-PUT http://localhost:8000/api/genres/52b704b8-bb26-4e67-ae27-ccec93c52f22 HTTP/1.1
+PUT http://localhost:8000/api/genres/c8cbc657-e686-4261-8854-d18ddb6b3cbe HTTP/1.1
 Accept: application/json
 Content-Type: application/json
 
 {
-    "is_active": false
+    "name": "name updated"
 }
 
 ### try delete genre that does not exist
@@ -51,5 +51,5 @@ DELETE http://localhost:8000/api/genres/0 HTTP/1.1
 Accept: application/json
 
 ### delete a genre
-DELETE http://localhost:8000/api/genres/8 HTTP/1.1
+DELETE http://localhost:8000/api/genres/c8cbc657-e686-4261-8854-d18ddb6b3cbe HTTP/1.1
 Accept: application/json
