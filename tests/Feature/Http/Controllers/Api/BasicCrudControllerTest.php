@@ -88,10 +88,10 @@ class BasicCrudControllerTest extends TestCase
 
     public function testShow() 
     {
-        $obj = $this->controller->show(1);
+        $obj = $this->controller->show($this->category->id);
         $this->assertEquals(
-            CategoryStub::find(1)->toArray(),
-            $obj->toArray()
+            $obj->toArray(),
+            CategoryStub::find($this->category->id)->toArray()
         );
     }
 
@@ -103,16 +103,18 @@ class BasicCrudControllerTest extends TestCase
             ->shouldReceive('all')
             ->times(2)
             ->andReturn(['name' => 'test_name_update', 'description' => 'test_description_update']);
-        $obj = $this->controller->update($request, 1);
+        $obj = $this->controller->update($request, $this->category->id);
         $this->assertEquals(
-            CategoryStub::find(1)->toArray(),
-            $obj->toArray()
+            $obj->toArray(),
+            CategoryStub::find($this->category->id)->toArray()
         );
     }
 
     public function testDestroy()
     {
-        $this->controller->destroy(1);
-        $this->assertNull(CategoryStub::find(1));
+        $response = $this->controller->destroy($this->category->id);
+        $this->createTestResponse($response)
+            ->assertStatus(204);
+        $this->assertCount(0, CategoryStub::all());
     }
 }

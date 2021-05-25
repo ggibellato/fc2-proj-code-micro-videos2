@@ -22,7 +22,9 @@ php artisan make:request GenreRequest
 
 
 vendor/bin/phpunit
-vendor/bin/phpunit --filter testStore CategoryControllerTest /var/www/tests/Feature/Http/Controllers/Api/CategoryControllerTest.php
+vendor/bin/phpunit --filter testInvalidationData CastMemberControllerTest /var/www/tests/Feature/Http/Controllers/Api/CastMemberControllerTest.php
+
+
 
 php artisan make:test [ClassName] [--unit]
 

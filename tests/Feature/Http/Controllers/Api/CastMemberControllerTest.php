@@ -17,7 +17,9 @@ class CastMemberControllerTest extends TestCase
     protected function setUp(): void 
     {
         parent::setUp();
-        $this->castMember = factory(CastMember::class)->create();
+        $this->castMember = factory(CastMember::class)->create([
+            'type' => CastMember::TYPE_DIRECTOR
+        ]);
     }
 
     public function testIndex()
@@ -52,34 +54,34 @@ class CastMemberControllerTest extends TestCase
         $data = [
             'type' => '3'
         ];
-        $this->assertInvalidationInStoreAction($data, 'between.numeric', ['min' => 1, 'max' => 2]);
-        $this->assertInvalidationInUpdateAction($data, 'between.numeric', ['min' => 1, 'max' => 2]);
+        $this->assertInvalidationInStoreAction($data, 'in');
+        $this->assertInvalidationInUpdateAction($data, 'in');
     }
 
     public function testStore() {
         $data = [
-            'name' => 'test',
-            'type' => 1
+            [
+                'name' => 'test',
+                'type' => CastMember::TYPE_DIRECTOR
+            ],
+            [
+                'name' => 'test',
+                'type' => CastMember::TYPE_ACTOR
+            ]
         ];
-        $response = $this->assertStore($data, $data + ['deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
 
-        $data = [
-            'name' => 'test',
-            'type' => 2
-        ];
-        $response = $this->assertStore($data, $data);
+        foreach($data as $key => $value) {
+            $response = $this->assertStore($value, $value + ['deleted_at' => null]);
+            $response->assertJsonStructure([
+                'created_at', 'updated_at'
+            ]);
+        }
     }
 
     public function testUpdate() {
-        $this->castMember = factory(CastMember::class)->create([
-            'type' => 1
-        ]);
         $data = [
             'name' => 'test',
-            'type' => 2
+            'type' => CastMember::TYPE_ACTOR
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
         $response->assertJsonStructure([

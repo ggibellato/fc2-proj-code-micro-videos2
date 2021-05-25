@@ -12,9 +12,7 @@ abstract class BasicCrudController extends Controller
 
     protected abstract function ruleStore();
 
-    // protected abstract function routeStore();
-
-    // protected abstract function routeUpdate();
+    protected abstract function ruleUpdate();
 
     public function index()
     {
@@ -42,7 +40,7 @@ abstract class BasicCrudController extends Controller
     public function update(Request $request, $id)
     {
         $model = $this->model()::findOrFail($id);
-        $this->validate($request, $this->ruleStore());
+        $this->validate($request, $this->ruleUpdate());
         $model->update($request->all());
         return $model;
     }

@@ -6,14 +6,25 @@ use App\Models\CastMember;
 
 class CastMemberController extends BasicCrudController
 {
+    private $rules;
+
+    public function __construct()
+    {
+        $this->rules = [
+            'name' => 'required|max:255',
+            'type' => 'required|in:' . implode(',',[CastMember::TYPE_ACTOR, CastMember::TYPE_DIRECTOR])
+        ];
+    }
+
     protected function model() {
         return CastMember::class;
     }
 
     protected function ruleStore() {
-        return [
-            'name' => 'required|max:255',
-            'type' => 'required|integer|between:1,2'
-        ];
+        return $this->rules;
+    }
+
+    protected function ruleUpdate() {
+        return $this->rules;
     }
 }
