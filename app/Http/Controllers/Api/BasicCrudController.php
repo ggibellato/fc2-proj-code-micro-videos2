@@ -34,21 +34,22 @@ abstract class BasicCrudController extends Controller
 
     public function show($id)
     {
-        return $this->model()::findOrFail($id);
+        $obj = $this->model()::findOrFail($id);
+        return $obj;
     }
 
     public function update(Request $request, $id)
     {
-        $model = $this->model()::findOrFail($id);
-        $this->validate($request, $this->ruleUpdate());
-        $model->update($request->all());
-        return $model;
+        $obj = $this->model()::findOrFail($id);
+        $validatedData = $this->validate($request, $this->ruleUpdate());
+        $obj->update($validatedData);
+        return $obj;
     }
 
     public function destroy($id)
     {
-        $model = $this->model()::findOrFail($id);
-        $model->delete();
+        $obj = $this->model()::findOrFail($id);
+        $obj->delete();
         return response()->noContent(); //204
     }
 }

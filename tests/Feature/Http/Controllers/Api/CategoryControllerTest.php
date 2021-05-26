@@ -70,7 +70,10 @@ class CategoryControllerTest extends TestCase
             'description' => 'description',
             'is_active' => false
         ];
-        $this->assertStore($data, $data);
+        $this->assertStore($data, $data + [
+            'description' => 'description',
+            'is_active' => false
+        ]);
     }
 
     public function testUpdate() {
@@ -96,10 +99,10 @@ class CategoryControllerTest extends TestCase
         $this->assertUpdate($data, array_merge($data, ['description' => null]));
 
         $data['description'] = 'test';
-        $this->assertUpdate($data, $data);
+        $this->assertUpdate($data, array_merge($data, ['description' => 'test']));
 
         $data['description'] = null;
-        $this->assertUpdate($data, $data);
+        $this->assertUpdate($data, array_merge($data, ['description' => null]));
     }
 
     public function testDestroy() {

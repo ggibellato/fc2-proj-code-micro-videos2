@@ -27,7 +27,7 @@ php artisan make:migration create_genre_video_table
 
 vendor/bin/phpunit
 vendor/bin/phpunit --filter testRollbackStore VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
-vendor/bin/phpunit --filter VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+vendor/bin/phpunit --filter BasicCrudControllerTest /var/www/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
 
 
 

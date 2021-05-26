@@ -90,8 +90,8 @@ class BasicCrudControllerTest extends TestCase
     {
         $obj = $this->controller->show($this->category->id);
         $this->assertEquals(
-            $obj->toArray(),
-            CategoryStub::find($this->category->id)->toArray()
+            CategoryStub::find(1)->toArray(),
+            $obj->toArray()
         );
     }
 
@@ -101,7 +101,7 @@ class BasicCrudControllerTest extends TestCase
         $request = \Mockery::mock(Request::class);
         $request
             ->shouldReceive('all')
-            ->times(2)
+            ->once()
             ->andReturn(['name' => 'test_name_update', 'description' => 'test_description_update']);
         $obj = $this->controller->update($request, $this->category->id);
         $this->assertEquals(
@@ -115,6 +115,6 @@ class BasicCrudControllerTest extends TestCase
         $response = $this->controller->destroy($this->category->id);
         $this->createTestResponse($response)
             ->assertStatus(204);
-        $this->assertCount(0, CategoryStub::all());
+        $this->assertNull(CategoryStub::find($this->category->id));
     }
 }

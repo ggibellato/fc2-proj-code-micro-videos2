@@ -69,7 +69,7 @@ class GenreControllerTest extends TestCase
             'name' => 'test',
             'is_active' => false
         ];
-        $response = $this->assertStore($data, $data);
+        $response = $this->assertStore($data, $data + ['is_active' => false]);
     }
 
     public function testUpdate() {
