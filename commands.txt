@@ -19,14 +19,17 @@ php artisan route:list
 php artisan migrate --path=/database/migrations/my_migration.php
 php artisan migrate:refresh --seed
 
-
 php artisan make:request CategoryRequest
 php artisan make:request GenreRequest
 
 php artisan make:migration create_genre_video_table
+php artisan make:migration create_category_genre_table
 
 vendor/bin/phpunit
-vendor/bin/phpunit --filter testRollbackStore VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+vendor/bin/phpunit --filter testCreate VideoTest /var/www/tests/Feature/Models/VideoTest.php
+vendor/bin/phpunit --filter testIncrementingAttribute VideoUnitTest /var/www/tests/Unit/Models/VideoUnitTest.php
+vendor/bin/phpunit --filter testSave GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
+vendor/bin/phpunit --filter testSave VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
 vendor/bin/phpunit --filter BasicCrudControllerTest /var/www/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
 
 

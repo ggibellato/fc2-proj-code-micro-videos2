@@ -20,7 +20,7 @@ trait TestSaves
         /** @var TestResponse $response */
         $response = $this->json('POST', $this->routeStore(), $sendData);
         if ($response->status() !== 201) {
-            throw new \Exception("REsponse status must be 201, given {$response->status()}:\n{$response->content()}");
+            throw new \Exception("Response status must be 201, given {$response->status()}:\n{$response->content()}");
         }
         $this->assertInDatabase($response, $testDatabase);
         $this->assertJsonResponseContent($response, $testDatabase, $testJsonData);
@@ -37,6 +37,13 @@ trait TestSaves
         $this->assertInDatabase($response, $testDatabase);
         $this->assertJsonResponseContent($response, $testDatabase, $testJsonData);
         return $response;
+    }
+
+    protected function assertRelations($model, $relations) {
+        foreach($relations as $key => $value) {
+            $model->load($key);
+            $this->assertEqualsCanonicalizing($value, $model->{$key}()->allRelatedIds()->toArray());    
+        }
     }
 
     private function assertInDatabase(TestResponse $response, array $testDatabase) 

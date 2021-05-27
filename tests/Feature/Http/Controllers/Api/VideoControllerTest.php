@@ -144,16 +144,22 @@ class VideoControllerTest extends TestCase
             ],
         ];
 
+        $relations = ["categories" => [$category->id], "genres" => [$genre->id]];
+
         foreach($data as $key => $value) {
+            /** @var TestResponse $response */
             $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
             $response->assertJsonStructure([
                 'created_at', 'updated_at'
             ]);
+            $video = Video::find(json_decode($response->getContent())->id);
+            $this->assertRelations($video, $relations);
             
             $response = $this->assertUpdate($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
             $response->assertJsonStructure([
                 'created_at', 'updated_at'
             ]);
+            $this->assertRelations($this->video, $relations);
         }
     }
 

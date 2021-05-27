@@ -14,7 +14,7 @@ class CastMemberTest extends TestCase
     {
         factory(CastMember::class, 1)->create();
         $castMember = CastMember::all();
-        $castMemberKey = array_keys($castMember->first()->getAttributes());
+        $key = array_keys($castMember->first()->getAttributes());
         $this->assertCount(1, CastMember::all());
         $this->assertEqualsCanonicalizing(
             [
@@ -25,7 +25,7 @@ class CastMemberTest extends TestCase
                 'updated_at',
                 'deleted_at'
             ],
-            $castMemberKey
+            $key
         );
     }
 
