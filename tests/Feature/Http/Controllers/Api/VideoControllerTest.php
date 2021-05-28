@@ -6,10 +6,9 @@ use App\Http\Controllers\Api\VideoController;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
-use App\Rules\CategoryGenreRelation;
+use App\Rules\GenresHasCategoriesRule;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Lang;
 use Tests\Exceptions\TestException;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
@@ -164,7 +163,7 @@ class VideoControllerTest extends TestCase
     public function testSave() {
         $category = factory(Category::class)->create();
         $genre = factory(Genre::class)->create();
-        $genre->categories()->sync($category);
+        $genre->categories()->sync($category->id);
 
         $data = [
             [
@@ -196,7 +195,7 @@ class VideoControllerTest extends TestCase
 
         foreach($data as $key => $value) {
             /** @var TestResponse $response */
-            $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
+            $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]);
             $response->assertJsonStructure([
                 'created_at', 'updated_at'
             ]);
@@ -318,17 +317,13 @@ class VideoControllerTest extends TestCase
     }
 
     public function testSaveCategoryGenreRelationValidationRuleInvalid(){
-        $rule = new CategoryGenreRelation(null);
-
         $category = factory(Category::class)->create();
         $genre = factory(Genre::class)->create();
         $genre->categories()->attach($category);
-        $genre->save();
 
         $category1 = factory(Category::class)->create();
         $genre1 = factory(Genre::class)->create();
         $genre1->categories()->attach($category1);
-        $genre1->save();
 
         $data = [
             [
@@ -344,6 +339,8 @@ class VideoControllerTest extends TestCase
                 ]
             ]
         ];
+
+        $rule = new GenresHasCategoriesRule([$category->id, $category1->id]);
 
         foreach($data as $key => $value) {
             /** @var TestResponse $response */
@@ -380,8 +377,9 @@ class VideoControllerTest extends TestCase
 
         /** @var \Mockery\MockInterface|Request */
         $request = \Mockery::mock(Request::class);
-        $request->categories_id = [];
-        $request->genres_id = [];
+        $request->shouldReceive('get')
+                ->withAnyArgs()
+                ->andReturn([]);
 
         $hasError = false;
         try {
@@ -426,8 +424,9 @@ class VideoControllerTest extends TestCase
 
         /** @var \Mockery\MockInterface|Request */
         $request = \Mockery::mock(Request::class);
-        $request->categories_id = [];
-        $request->genres_id = [];
+        $request->shouldReceive('get')
+                ->withAnyArgs()
+                ->andReturn([]);
 
         $hasError = false;
         try {

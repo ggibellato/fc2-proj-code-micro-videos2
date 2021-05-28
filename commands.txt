@@ -33,8 +33,15 @@ vendor/bin/phpunit --filter testSaveCategoryGenreRelationValidationRuleInvalid V
 vendor/bin/phpunit --filter BasicCrudControllerTest /var/www/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
 
 vendor/bin/phpunit --filter testSyncCategories GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
-vendor/bin/phpunit --filter VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
-vendor/bin/phpunit --filter testInvalidationGenreIdField VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+vendor/bin/phpunit --filter testSyncCategories VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+
+
+vendor/bin/phpunit --filter testSaveCategoryGenreRelationValidationRuleInvalid VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+
+
+vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Unit/Rules/GenresHasCategoriesRuleTest.php
+vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Feature/Rules/GenresHasCategoriesRuleTest.php
+
 
 
 php artisan make:test [ClassName] [--unit]
