@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Video;
+use App\Rules\CategoryGenreRelation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -20,14 +21,18 @@ class VideoController extends BasicCrudController
             'opened' => 'boolean',
             'rating' => 'required|in:' . implode (',', Video::RATING_LIST),
             'duration' => 'required|integer',
-            'categories_id' => 'required|array|exists:categories,id',
-            'genres_id' => 'required|array|exists:genres,id',
+            'categories_id' => ['required', 'array', 'exists:categories,id'],
+            'genres_id' => ['required', 'array', 'exists:genres,id']
         ];
     }
 
     public function store(Request $request)
     {
-        $validatedData = $this->validate($request, $this->ruleStore());
+        $rules = $this->ruleStore();
+        $rules['genres_id'] = ['required', 'array', 'exists:genres,id', 
+             new CategoryGenreRelation(['categories_id' => $request->categories_id, 'genres_id' => $request->genres_id])
+        ];
+        $validatedData = $this->validate($request, $rules);
         $self = $this;
         /** @var Video $obj */
         $obj = DB::transaction(function () use ($request, $validatedData, $self) {
@@ -43,7 +48,7 @@ class VideoController extends BasicCrudController
     public function update(Request $request, $id)
     {
         $obj = $this->findOrFail($id);
-        $validatedData = $this->validate($request, $this->ruleUpdate());
+        $validatedData = $this->validate($request, $this->ruleUpdate() + [new CategoryGenreRelation($request)]);
         $self = $this;
         $obj = DB::transaction(function () use ($request, $validatedData, $self, $obj) {
             $obj->update($validatedData);

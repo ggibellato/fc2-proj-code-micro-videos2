@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\GenreController;
 use App\Models\Category;
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Http\Request;
+use Tests\Exceptions\TestException;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
@@ -100,6 +103,42 @@ class GenreControllerTest extends TestCase
                 'created_at', 'updated_at'
             ]);
             $this->assertRelations($this->genre, $relations);
+        }
+    }
+
+    public function testRollbackStore() 
+    {
+        $category = factory(Category::class)->create();
+
+        /** @var \Mockery\MockInterface|GenreController */
+        $controller = \Mockery::mock(GenreController::class);
+        $controller
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+
+        $controller
+            ->shouldReceive('validate')
+            ->withAnyArgs()
+            ->andReturn(['name' => 'test', 'categories_id' => [$category->id]]);
+
+        $controller
+            ->shouldReceive('ruleStore')
+            ->withAnyArgs()
+            ->andReturn([]);
+        
+        $controller->shouldReceive('handleRelations')
+            ->once()
+            ->andThrow(new TestException());
+
+
+        /** @var \Mockery\MockInterface|Request */
+        $request = \Mockery::mock(Request::class);
+
+        try {
+            $controller->store($request);
+        }
+        catch(TestException $exception) {
+            $this->assertCount(1, Genre::all());
         }
     }
 

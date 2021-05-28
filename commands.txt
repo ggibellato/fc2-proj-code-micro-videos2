@@ -28,8 +28,8 @@ php artisan make:migration create_category_genre_table
 vendor/bin/phpunit
 vendor/bin/phpunit --filter testCreate VideoTest /var/www/tests/Feature/Models/VideoTest.php
 vendor/bin/phpunit --filter testIncrementingAttribute VideoUnitTest /var/www/tests/Unit/Models/VideoUnitTest.php
-vendor/bin/phpunit --filter testSave GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
-vendor/bin/phpunit --filter testSave VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+vendor/bin/phpunit --filter testRollbackStore GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
+vendor/bin/phpunit --filter testSaveCategoryGenreRelationValidationRuleInvalid VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
 vendor/bin/phpunit --filter BasicCrudControllerTest /var/www/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
 
 
