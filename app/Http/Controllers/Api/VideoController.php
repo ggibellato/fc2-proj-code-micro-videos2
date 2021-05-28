@@ -21,15 +21,15 @@ class VideoController extends BasicCrudController
             'opened' => 'boolean',
             'rating' => 'required|in:' . implode (',', Video::RATING_LIST),
             'duration' => 'required|integer',
-            'categories_id' => ['required', 'array', 'exists:categories,id'],
-            'genres_id' => ['required', 'array', 'exists:genres,id']
+            'categories_id' => ['required', 'array', 'exists:categories,id,deleted_at,NULL'],
+            'genres_id' => ['required', 'array', 'exists:genres,id,deleted_at,NULL']
         ];
     }
 
     public function store(Request $request)
     {
         $rules = $this->ruleStore();
-        $rules['genres_id'] = ['required', 'array', 'exists:genres,id', 
+        $rules['genres_id'] = ['required', 'array', 'exists:genres,id,deleted_at,NULL', 
              new CategoryGenreRelation(['categories_id' => $request->categories_id, 'genres_id' => $request->genres_id])
         ];
         $validatedData = $this->validate($request, $rules);
