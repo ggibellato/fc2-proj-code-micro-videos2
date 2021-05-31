@@ -3,6 +3,7 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Video;
+use App\Models\Traits\UploadFiles;
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +23,8 @@ class VideoUnitTest extends TestCase
     {
         $traits = [
             SoftDeletes::class,
-            Uuid::class
+            Uuid::class,
+            UploadFiles::class
         ];
         $videoTraits = array_keys(class_uses(Video::class));
         $this->assertEquals($traits, $videoTraits);
@@ -35,7 +37,8 @@ class VideoUnitTest extends TestCase
         'year_launched',
         'opened',
         'rating',
-        'duration'];
+        'duration',
+        'video_file'];
         $this->assertEquals($fillable, $this->video->getFillable());
     }
 
@@ -50,7 +53,8 @@ class VideoUnitTest extends TestCase
         $casts = [        
             'opened' => 'boolean',
             'year_launched' => 'integer',
-            'duration' => 'integer'
+            'duration' => 'integer',
+            'video_file' => 'string'
         ];
         $this->assertEquals($casts, $this->video->getCasts());
     }

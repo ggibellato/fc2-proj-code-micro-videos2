@@ -1,14 +1,14 @@
 ### get all
 GET http://localhost:8000/api/videos HTTP/1.1
 
-### get genre does not exist
+### get video does not exist
 GET http://localhost:8000/api/videos/0 HTTP/1.1
 Accept: application/json
 
-### get a specific genre
+### get a specific video
 GET http://localhost:8000/api/videos/020b7971-4a7a-452e-864b-5de89e1fe7c1 HTTP/1.1
 
-### add a new genre
+### add a new video
 POST http://localhost:8000/api/videos HTTP/1.1
 Accept: application/json
 Content-Type: application/json
@@ -22,7 +22,7 @@ Content-Type: application/json
     "categories_id": ["041647a7-90ca-43a2-b808-a5efb6936456", "0685e0c0-8a6a-40ac-ba00-723e6cc27050"]
 }
 
-### add a new genre data invalid
+### add a new video data invalid
 POST http://localhost:8000/api/videos HTTP/1.1
 Accept: application/json
 Content-Type: application/json
@@ -33,7 +33,7 @@ Content-Type: application/json
 }
 
 
-### try udpate genre that does not exist
+### try udpate video that does not exist
 PUT http://localhost:8000/api/videos/0 HTTP/1.1
 Accept: application/json
 Content-Type: application/json
@@ -42,7 +42,7 @@ Content-Type: application/json
     "title": "genre update 3"
 }
 
-### udpate genre
+### udpate video
 PUT http://localhost:8000/api/videos/8b58067c-7000-4b4d-b8f9-811dd2f2ed6b HTTP/1.1
 Accept: application/json
 Content-Type: application/json
@@ -56,10 +56,49 @@ Content-Type: application/json
     "categories_id": ["09cdcf8d-676d-4dbe-9585-3a27b9a3d2f4", "0685e0c0-8a6a-40ac-ba00-723e6cc27050"]
 }
 
-### try delete genre that does not exist
+### try delete video that does not exist
 DELETE http://localhost:8000/api/videos/0 HTTP/1.1
 Accept: application/json
 
-### delete a genre
+### delete a video
 DELETE http://localhost:8000/api/videos/020b7971-4a7a-452e-864b-5de89e1fe7c1 HTTP/1.1
 Accept: application/json
+
+
+
+### add video with Category and Genre
+POST http://localhost:8000/api/videos HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+    "title": "title",
+    "description": "description",
+    "year_launched": 2010,
+    "rating": "L",
+    "duration": 90,
+    "vidoe_file": null,
+    "categories_id": ["31858c47-4618-4aa4-912a-870735d40371"],
+    "genres_id": ["8009e073-e640-4920-9f21-6e37f75e67b0"]
+}
+
+###
+POST http://localhost:8000/api/videos HTTP/1.1
+Content-Disposition: form-data; title="title"
+Content-Type: application/xml
+
+
+###
+POST http://localhost:8000/api/videos HTTP/1.1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="text"
+
+title
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="1.png"
+Content-Type: image/png
+
+< ./1.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--

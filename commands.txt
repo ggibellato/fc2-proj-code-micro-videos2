@@ -12,6 +12,8 @@ docker exec -it micro-videos-app bash
 
 # CLI acessa os models usando php classes
 php artisan tinker 
+App\Models\Category::all()
+
 
 php artisan make:model Genre --all
 php artisan route:list
@@ -26,7 +28,7 @@ php artisan make:migration create_genre_video_table
 php artisan make:migration create_category_genre_table
 
 vendor/bin/phpunit
-vendor/bin/phpunit --filter testCreate VideoTest /var/www/tests/Feature/Models/VideoTest.php
+vendor/bin/phpunit --filter testSyncCategories VideoTest /var/www/tests/Feature/Models/VideoTest.php
 vendor/bin/phpunit --filter testIncrementingAttribute VideoUnitTest /var/www/tests/Unit/Models/VideoUnitTest.php
 vendor/bin/phpunit --filter testRollbackStore GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
 vendor/bin/phpunit --filter testSaveCategoryGenreRelationValidationRuleInvalid VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
@@ -36,13 +38,15 @@ vendor/bin/phpunit --filter testSyncCategories GenreControllerTest /var/www/test
 vendor/bin/phpunit --filter testSyncCategories VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
 
 
-vendor/bin/phpunit --filter testSaveCategoryGenreRelationValidationRuleInvalid VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+vendor/bin/phpunit --filter testInvalidationVideo_FileField VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
+
+
 
 
 vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Unit/Rules/GenresHasCategoriesRuleTest.php
 vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Feature/Rules/GenresHasCategoriesRuleTest.php
 
-
+vendor/bin/phpunit --filter UploadFilesUnitTest /var/www/tests/Unit/Models/Traits/UploadFilesUnitTest.php
 
 php artisan make:test [ClassName] [--unit]
 
