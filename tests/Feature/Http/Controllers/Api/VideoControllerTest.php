@@ -177,7 +177,74 @@ class VideoControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data, 'mimetypes', ['values' => 'video/mp4']);
     }
 
-    public function testSave() {
+    public function testSaveWithoutFile() {
+        Storage::fake();
+        $category = factory(Category::class)->create();
+        $genre = factory(Genre::class)->create();
+        $genre->categories()->sync($category->id);
+
+        $data = [
+            [
+                'send_data' => $this->sendData + [
+                    'categories_id' => [$category->id], 
+                    'genres_id' => [$genre->id]
+                ],                    
+                'test_data' => $this->sendData + ['opened' => false]
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'opened' => true, 
+                    'categories_id' => [$category->id], 
+                    'genres_id' => [$genre->id]
+                ] ,
+                'test_data' => $this->sendData + ['opened' => true]
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'rating' => Video::RATING_LIST[1], 
+                    'categories_id' => [$category->id], 
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+            ]
+        ];
+
+        $relations = ["categories" => [$category->id], "genres" => [$genre->id]];
+
+        foreach($data as $key => $value) {
+            /** @var TestResponse $response */
+            $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]);
+            $response->assertJsonStructure([
+                'created_at', 'updated_at'
+            ]);
+            $video = Video::find(json_decode($response->getContent())->id);
+            $this->assertRelations($video, $relations);
+            $this->assertHasCategory(
+                $response->json('id'),
+                $value['send_data']['categories_id'][0]
+            );
+            $this->assertHasGenre(
+                $response->json('id'),
+                $value['send_data']['genres_id'][0]
+            );
+            
+            $response = $this->assertUpdate($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
+            $response->assertJsonStructure([
+                'created_at', 'updated_at'
+            ]);
+            $this->assertRelations($this->video, $relations);
+            $this->assertHasCategory(
+                $response->json('id'),
+                $value['send_data']['categories_id'][0]
+            );
+            $this->assertHasGenre(
+                $response->json('id'),
+                $value['send_data']['genres_id'][0]
+            );
+        }
+    }
+
+    public function testStoreWithFile() {
         Storage::fake();
         $category = factory(Category::class)->create();
         $genre = factory(Genre::class)->create();
@@ -253,6 +320,83 @@ class VideoControllerTest extends TestCase
             );
         }
     }
+
+    // public function testUpdateWithFile() {
+    //     Storage::fake();
+    //     $category = factory(Category::class)->create();
+    //     $genre = factory(Genre::class)->create();
+    //     $genre->categories()->sync($category->id);
+
+    //     $file = UploadedFile::fake()->create('video.mp4',100, 'video/mp4');
+
+    //     $data = [
+    //         [
+    //             'send_data' => $this->sendData + [
+    //                 'categories_id' => [$category->id], 
+    //                 'genres_id' => [$genre->id]
+    //             ],                    
+    //             'test_data' => $this->sendData + ['opened' => false]
+    //         ],
+    //         [
+    //             'send_data' => $this->sendData + [
+    //                 'opened' => true, 
+    //                 'categories_id' => [$category->id], 
+    //                 'genres_id' => [$genre->id]
+    //             ] ,
+    //             'test_data' => $this->sendData + ['opened' => true]
+    //         ],
+    //         [
+    //             'send_data' => $this->sendData + [
+    //                 'rating' => Video::RATING_LIST[1], 
+    //                 'categories_id' => [$category->id], 
+    //                 'genres_id' => [$genre->id]
+    //             ],
+    //             'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+    //         ],
+    //         [
+    //             'send_data' => $this->sendData + [
+    //                 'video_file' => $file, 
+    //                 'categories_id' => [$category->id], 
+    //                 'genres_id' => [$genre->id]
+    //             ],
+    //             'test_data' => $this->sendData + ['rating' => Video::RATING_LIST[1]]
+    //         ],
+    //     ];
+
+    //     $relations = ["categories" => [$category->id], "genres" => [$genre->id]];
+
+    //     foreach($data as $key => $value) {
+    //         /** @var TestResponse $response */
+    //         $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]);
+    //         $response->assertJsonStructure([
+    //             'created_at', 'updated_at'
+    //         ]);
+    //         $video = Video::find(json_decode($response->getContent())->id);
+    //         $this->assertRelations($video, $relations);
+    //         $this->assertHasCategory(
+    //             $response->json('id'),
+    //             $value['send_data']['categories_id'][0]
+    //         );
+    //         $this->assertHasGenre(
+    //             $response->json('id'),
+    //             $value['send_data']['genres_id'][0]
+    //         );
+            
+    //         $response = $this->assertUpdate($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
+    //         $response->assertJsonStructure([
+    //             'created_at', 'updated_at'
+    //         ]);
+    //         $this->assertRelations($this->video, $relations);
+    //         $this->assertHasCategory(
+    //             $response->json('id'),
+    //             $value['send_data']['categories_id'][0]
+    //         );
+    //         $this->assertHasGenre(
+    //             $response->json('id'),
+    //             $value['send_data']['genres_id'][0]
+    //         );
+    //     }
+    // }
 
     private function assertHasCategory($videoId, $categoryId) {
         $this->assertDatabaseHas('category_video', [

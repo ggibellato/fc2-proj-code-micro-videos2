@@ -4,12 +4,12 @@ namespace Tests\Unit\Models\Traits;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 use Tests\Stubs\Models\UploadFilesStub;
-
 
 class UploadFilesUnitTest extends TestCase
 {
+
     /** @var UploadedFile $obj */
     private $obj;
 
