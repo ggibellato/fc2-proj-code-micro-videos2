@@ -1,6 +1,6 @@
 steps:
 
-- id: "decrypt key file"
+- id: "Gerando service-account-storage.json"
   name: 'gcr.io/cloud-builders/gcloud'
   args: 
     - kms 
