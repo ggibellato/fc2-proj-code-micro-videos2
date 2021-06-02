@@ -52,4 +52,11 @@
       0 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
     ),
   ),
+  'superbalist/laravel-google-cloud-storage' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'Superbalist\\LaravelGoogleCloudStorage\\GoogleCloudStorageServiceProvider',
+    ),
+  ),
 );

@@ -1,8 +1,25 @@
 steps:
 
+- id: "decrypt key file"
+  name: 'gcr.io/cloud-builders/gcloud'
+  args: 
+    - kms 
+    - decrypt 
+    - --ciphertext-file=./storage/credentials/google/fc2-projeto-storage.json.enc 
+    - --plaintext-file=./storage/credentials/google/fc2-projeto-storage.json 
+    - --location=global 
+    - --keyring=code-micro-videos 
+    - --key=service-account
+
 - id: "Rodando docker-compose"
   name: 'docker/compose'
   args: ['-f', 'docker-compose.cloudbuild.yaml', 'up', '-d']
+  env: 
+    - GOOGLE_CLOUD_PROJECT_ID=$PROJECT_ID
+    - GOOGLE_CLOUD_KEY_FILE=fc2-projeto-storage.json
+    - GOOGLE_CLOUD_STORAGE_BUCKET=ggscode-micro-videos
+    - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/ggscode-micro-videos
+    - TESTING_PROD=true
 
 - id: "Chown in /var/www"
   name: 'docker'

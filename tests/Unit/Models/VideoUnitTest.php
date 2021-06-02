@@ -6,7 +6,7 @@ use App\Models\Video;
 use App\Models\Traits\UploadFiles;
 use App\Models\Traits\Uuid;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class VideoUnitTest extends TestCase
 {
@@ -38,7 +38,8 @@ class VideoUnitTest extends TestCase
         'opened',
         'rating',
         'duration',
-        'video_file'];
+        'video_file',
+        'thumb_file'];
         $this->assertEquals($fillable, $this->video->getFillable());
     }
 
