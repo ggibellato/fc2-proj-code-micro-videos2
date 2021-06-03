@@ -11,11 +11,12 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 use Tests\Traits\TestSaves;
+use Tests\Traits\TestUploads;
 use Tests\Traits\TestValidations;
 
 class VideoControllerTest extends TestCase
 {
-    use DatabaseMigrations, TestValidations, TestSaves;
+    use DatabaseMigrations, TestValidations, TestSaves, TestUploads;
 
     private $video;
     private $sendData = [
@@ -156,20 +157,6 @@ class VideoControllerTest extends TestCase
             $this->assertInvalidationInStoreAction($data, 'exists');
             $this->assertInvalidationInUpdateAction($data, 'exists');
         }
-    }
-
-    public function testInvalidationVideo_FileField() {
-        Storage::fake();
-        $file = UploadedFile::fake()->create('video.mp4', 2048, 'mimes:jpg');
-
-        $data = [
-            'video_file' => $file
-        ];
-        $this->assertInvalidationInStoreAction($data, 'max.file', ['max' => 1024]);
-        $this->assertInvalidationInUpdateAction($data, 'max.file', ['max' => 1024]);
-
-        $this->assertInvalidationInStoreAction($data, 'mimetypes', ['values' => 'video/mp4']);
-        $this->assertInvalidationInUpdateAction($data, 'mimetypes', ['values' => 'video/mp4']);
     }
 
     public function testSaveWithoutFile() {

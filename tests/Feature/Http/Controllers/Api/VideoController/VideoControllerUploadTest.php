@@ -4,30 +4,43 @@ namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
 use App\Models\Category;
 use App\Models\Genre;
-use App\Models\Video;
-use App\Rules\GenresHasCategoriesRule;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
-use Tests\Traits\TestSaves;
-use Tests\Traits\TestValidations;
+use Tests\Traits\TestUploads;
 
 class VideoControllerUploadTest extends BasicVideoControllerTestCase
 {
 
-    public function testInvalidationVideo_FileField() {
-        Storage::fake();
-        $file = UploadedFile::fake()->create('video.mp4', 2048, 'mimes:jpg');
+    use TestUploads;
 
-        $data = [
-            'video_file' => $file
-        ];
-        $this->assertInvalidationInStoreAction($data, 'max.file', ['max' => 1024]);
-        $this->assertInvalidationInUpdateAction($data, 'max.file', ['max' => 1024]);
+    public function testInvalidationFileFields() {
+        $this->assertInvalidationFile(
+            'video_file',
+            'mp4',
+            52428800,
+            'video/mp4'
+        );
 
-        $this->assertInvalidationInStoreAction($data, 'mimetypes', ['values' => 'video/mp4']);
-        $this->assertInvalidationInUpdateAction($data, 'mimetypes', ['values' => 'video/mp4']);
+        $this->assertInvalidationFile(
+            'thumb_file',
+            'jpg',
+            5120,
+            'image/jpeg'
+        );
+
+        $this->assertInvalidationFile(
+            'banner_file',
+            'jpg',
+            10240,
+            'image/jpeg'
+        );
+
+        $this->assertInvalidationFile(
+            'trailer_file',
+            'mp4',
+            1048576,
+            'video/mp4'
+        );
     }
 
     public function testStoreWithFile() {
@@ -85,7 +98,10 @@ class VideoControllerUploadTest extends BasicVideoControllerTestCase
     protected function getFiles() 
     {
         return [
-            'video_file' => UploadedFile::fake()->create('video_file.mp4', 10, 'video/mp4')
+            'video_file' => UploadedFile::fake()->create('video_file.mp4'),
+            'thumb_file' => UploadedFile::fake()->create('thumb_file.jpg'),
+            'banner_file' => UploadedFile::fake()->create('banner_file.jpg'),
+            'trailer_file' => UploadedFile::fake()->create('video_file.mp4')
         ];
     }
 }

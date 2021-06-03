@@ -6,12 +6,7 @@ use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
 use App\Rules\GenresHasCategoriesRule;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
-use Tests\Traits\TestSaves;
-use Tests\Traits\TestValidations;
 
 class VideoControllerCrudTest extends BasicVideoControllerTestCase
 {

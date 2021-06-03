@@ -22,7 +22,10 @@ class VideoController extends BasicCrudController
             'duration' => 'required|integer',
             'categories_id' => 'required|array|exists:categories,id,deleted_at,NULL',
             'genres_id' => ['required', 'array', 'exists:genres,id,deleted_at,NULL'],
-            'video_file' => 'max:1024|mimetypes:video/mp4'
+            'video_file' => 'max:52428800|mimetypes:video/mp4',
+            'thumb_file' => 'max:5120|mimetypes:image/jpeg',
+            'banner_file' => 'max:10240|mimetypes:image/jpeg',
+            'trailer_file' => 'max:1048576|mimetypes:video/mp4',
         ];
     }
 

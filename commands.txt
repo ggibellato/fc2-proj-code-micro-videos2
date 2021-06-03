@@ -41,6 +41,7 @@ vendor/bin/phpunit --filter testSyncCategories VideoControllerTest /var/www/test
 vendor/bin/phpunit --filter VideoControllerUploadTest /var/www/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadTest.php
 
 
+vendor/bin/phpunit --filter testInvalidationFileFields VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerTest.php
 
 
 vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Unit/Rules/GenresHasCategoriesRuleTest.php
