@@ -28,6 +28,17 @@ trait UploadFiles
         });
     }
 
+    public static function extractFiles(array &$attributes = []) {
+        $files = [];
+        foreach(self::$fileFields as $file) {
+            if(isset($attributes[$file]) && $attributes[$file] instanceof UploadedFile) {
+                $files[] = $attributes[$file];
+                $attributes[$file] = $attributes[$file]->hashName();
+            }
+        }
+        return $files;
+    }
+
     /**
      * @param UploadedFile[] $files
     */
@@ -63,14 +74,9 @@ trait UploadFiles
         Storage::delete("{$this->uploadDir()}/{$filename}");
     }
 
-    public static function extractFiles(array &$attributes = []) {
-        $files = [];
-        foreach(self::$fileFields as $file) {
-            if(isset($attributes[$file]) && $attributes[$file] instanceof UploadedFile) {
-                $files[] = $attributes[$file];
-                $attributes[$file] = $attributes[$file]->hashName();
-            }
-        }
-        return $files;
+    public function publicUlrFile($file) {
+        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI', 'http:/');
+        $filename = $file instanceof UploadedFile ? $file->hashName() : $file;
+        return "{$path}/{$this->uploadDir()}/{$filename}";
     }
 }

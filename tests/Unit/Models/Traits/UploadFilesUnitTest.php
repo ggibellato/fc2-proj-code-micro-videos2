@@ -110,4 +110,12 @@ class UploadFilesUnitTest extends TestCase
         ], $attributes);
         $this->assertEquals([$file1, $file2], $files);
     }
+
+    public function testPublicUlrFile()
+    {
+        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI');
+        $file = UploadedFile::fake()->create('video.mp4');
+        $fileUrl = $this->obj->publicUlrFile($file);
+        $this->assertEquals("{$path}/1/{$file->hashName()}", $fileUrl);
+    }
 }

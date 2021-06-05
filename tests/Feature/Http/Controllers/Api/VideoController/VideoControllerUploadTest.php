@@ -90,8 +90,10 @@ class VideoControllerUploadTest extends BasicVideoControllerTestCase
         $response->assertStatus(200);
 
         $id = $response->json('id');
-        foreach($files as $file) {
+        foreach($files as $key => $file) {
             Storage::assertExists("$id/{$file->hashName()}");
+            $fileUrl = $response->json("{$key}"."_url");
+            $this->assertEquals($this->video->publicUlrFile($file),$fileUrl);
         }
     }
 

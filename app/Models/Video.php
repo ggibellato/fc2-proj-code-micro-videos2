@@ -105,6 +105,31 @@ class Video extends Model
     }
 
     public function uploadDir(){
+        //dump('aqui no uploadr');
         return $this->id;
+    }
+
+    public function setVideoFileAttribute($value)
+    {
+        $this->attributes['video_file'] = $value;
+        $this->attributes['video_file_url'] = $this->publicUlrFile($value);
+    }
+
+    public function setThumbFileAttribute($value)
+    {
+        $this->attributes['thumb_file'] = $value;
+        $this->attributes['thumb_file_url'] = $this->publicUlrFile($value);
+    }
+
+    public function setBannerFileAttribute($value)
+    {
+        $this->attributes['banner_file'] = $value;
+        $this->attributes['banner_file_url'] = $this->publicUlrFile($value);
+    }
+
+    public function setTrailerFileAttribute($value)
+    {
+        $this->attributes['trailer_file'] = $value;
+        $this->attributes['trailer_file_url'] = $this->publicUlrFile($value);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Prod\Models\Traits;
 
+use GuzzleHttp\Client;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
@@ -74,4 +75,19 @@ class UploadFilesProdTest extends TestCase
         Storage::assertMissing("1/{$file2->hashName()}");
     }
 
+    public function testPublicUlrFile() {
+        // para funcionar tive que instalar
+        // composer require guzzlehttp/guzzle
+        $client = new Client();
+
+        $file1 = UploadedFile::fake()->create('video1.mp4');
+        $this->obj->uploadFiles([$file1]);
+
+        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI');
+        $fileUrl = $this->obj->publicUlrFile($file1);
+        $this->assertEquals("{$path}/1/{$file1->hashName()}", $fileUrl);
+
+        $response = $client->get($fileUrl);
+        $this->assertEquals(200, $response->getStatusCode());
+    }
 }
