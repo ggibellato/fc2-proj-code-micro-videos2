@@ -18,15 +18,13 @@ class VideoCrudTest extends BaseVideoTestCase
         foreach(Video::$fileFields as $field) {
             $this->fileFieldsData[$field] = "$field.test";
         }
-        foreach(Video::$fileFields as $field) {
-            $this->fileFieldsUrl[$field."_url"] = "https://storage.googleapis.com/ggscode-micro-videos//"."$field.test";
-        }
     }
 
     private function getFieldsUrl($video) {
         $fileFieldsUrl = [];
+        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI');
         foreach(Video::$fileFields as $field) {
-            $fileFieldsUrl[$field."_url"] = "https://storage.googleapis.com/ggscode-micro-videos/{$video->id}/"."$field.test";
+            $fileFieldsUrl[$field."_url"] = "{$path}/{$video->id}/"."$field.test";
         }
         return $fileFieldsUrl;
     }

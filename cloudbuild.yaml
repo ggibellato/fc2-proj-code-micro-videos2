@@ -19,6 +19,7 @@ steps:
     - GOOGLE_CLOUD_KEY_FILE=fc2-projeto-storage.json
     - GOOGLE_CLOUD_STORAGE_BUCKET=ggscode-micro-videos
     - GOOGLE_CLOUD_STORAGE_API_URI=https://storage.cloud.google.com/ggscode-micro-videos
+    - GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI=https://storage.googleapis.com/ggscode-micro-videos
     - TESTING_PROD=true
 
 - id: "Chown in /var/www"
