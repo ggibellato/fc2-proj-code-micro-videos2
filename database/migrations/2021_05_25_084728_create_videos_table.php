@@ -22,13 +22,9 @@ class CreateVideosTable extends Migration
             $table->string('rating', 3);
             $table->smallInteger('duration');
             $table->string('video_file')->nullable();
-            $table->string('video_file_url')->nullable();
             $table->string('thumb_file')->nullable();
-            $table->string('thumb_file_url')->nullable();
             $table->string('banner_file')->nullable();
-            $table->string('banner_file_url')->nullable();
             $table->string('trailer_file')->nullable();
-            $table->string('trailer_file_url')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -113,27 +113,23 @@ class Video extends Model
         return $this->id;
     }
 
-    public function setVideoFileAttribute($value)
+    public function getVideoFileUrlAttribute()
     {
-        $this->attributes['video_file'] = $value;
-        $this->attributes['video_file_url'] = $this->publicUlrFile($value);
+        return $this->video_file ? $this->publicUlrFile($this->video_file) : null;
     }
 
-    public function setThumbFileAttribute($value)
+    public function getThumbFileUrlAttribute()
     {
-        $this->attributes['thumb_file'] = $value;
-        $this->attributes['thumb_file_url'] = $this->publicUlrFile($value);
+        return $this->thumb_file ? $this->publicUlrFile($this->thumb_file) : null;
     }
 
-    public function setBannerFileAttribute($value)
+    public function getBannerFileUrlAttribute()
     {
-        $this->attributes['banner_file'] = $value;
-        $this->attributes['banner_file_url'] = $this->publicUlrFile($value);
+        return $this->banner_file ? $this->publicUlrFile($this->banner_file) : null;
     }
 
-    public function setTrailerFileAttribute($value)
+    public function getTrailerFileUrlAttribute()
     {
-        $this->attributes['trailer_file'] = $value;
-        $this->attributes['trailer_file_url'] = $this->publicUlrFile($value);
+        return $this->trailer_file ? $this->publicUlrFile($this->trailer_file) : null;
     }
 }

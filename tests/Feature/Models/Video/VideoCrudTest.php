@@ -20,15 +20,6 @@ class VideoCrudTest extends BaseVideoTestCase
         }
     }
 
-    private function getFieldsUrl($video) {
-        $fileFieldsUrl = [];
-        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI');
-        foreach(Video::$fileFields as $field) {
-            $fileFieldsUrl[$field."_url"] = "{$path}/{$video->id}/"."$field.test";
-        }
-        return $fileFieldsUrl;
-    }
-
     public function testList()
     {
         factory(Video::class, 1)->create();
@@ -45,13 +36,9 @@ class VideoCrudTest extends BaseVideoTestCase
                 'rating',
                 'duration',
                 'video_file',
-                'video_file_url',
                 'thumb_file',
-                'thumb_file_url',
                 'banner_file',
-                'banner_file_url',
                 'trailer_file',
-                'trailer_file_url',
                 'created_at',
                 'updated_at',
                 'deleted_at'
@@ -74,20 +61,14 @@ class VideoCrudTest extends BaseVideoTestCase
     {
         //dump('antes do create');
         $video = Video::create($this->defaultData + $this->fileFieldsData);
-        $fileFieldsUrl = $this->getFieldsUrl($video);
         $video->refresh();
 
         $this->assertRegExp('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i', $video->id);
         $this->assertFalse($video->opened);
-        //$this->assertDatabaseHas('videos', $this->defaultData + $this->fileFieldsData + $fileFieldsUrl + ['opened' => false]);
-        // tem um problema com a ordem que as coisas acontence
-        // os metodos set dos fields url estao acontecdnedo antes do trait uuid boot
         $this->assertDatabaseHas('videos', $this->defaultData + $this->fileFieldsData + ['opened' => false]);
         
         $video = Video::create($this->defaultData + ['opened' => true]);
-        $fileFieldsUrl = $this->getFieldsUrl($video);
         $this->assertTrue($video->opened);
-        //$this->assertDatabaseHas('videos', $this->defaultData + $fileFieldsUrl + ['opened' => true]);
         $this->assertDatabaseHas('videos', $this->defaultData + ['opened' => true]);
     }
 
@@ -119,17 +100,15 @@ class VideoCrudTest extends BaseVideoTestCase
         /** @var Video $video */
         $video = factory(Video::class)->create(['opened' => false]);
         $video->update($this->defaultData + $this->fileFieldsData);
-        $fileFieldsUrl = $this->getFieldsUrl($video);
 
         $this->assertFalse($video->opened);
-        $this->assertDatabaseHas('videos', $this->defaultData + $this->fileFieldsData + $fileFieldsUrl + ['opened' => false]);
+        $this->assertDatabaseHas('videos', $this->defaultData + $this->fileFieldsData + ['opened' => false]);
 
         $video = factory(Video::class)->create(['opened' => false]);
         $video->update($this->defaultData + $this->fileFieldsData + ['opened' => true]);
-        $fileFieldsUrl = $this->getFieldsUrl($video);
 
         $this->assertTrue($video->opened);
-        $this->assertDatabaseHas('videos', $this->defaultData + $this->fileFieldsData + $fileFieldsUrl + ['opened' => true]);
+        $this->assertDatabaseHas('videos', $this->defaultData + $this->fileFieldsData + ['opened' => true]);
     }
 
     public function testUpdateWithRelations(){

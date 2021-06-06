@@ -39,6 +39,11 @@ trait UploadFiles
         return $files;
     }
 
+    public function relativeFilePath($value) {
+        return "{$this->uploadDir()}/{$value}";
+    }
+
+
     /**
      * @param UploadedFile[] $files
     */
@@ -75,8 +80,9 @@ trait UploadFiles
     }
 
     public function publicUlrFile($file) {
-        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI', 'http:/');
-        $filename = $file instanceof UploadedFile ? $file->hashName() : $file;
-        return "{$path}/{$this->uploadDir()}/{$filename}";
+        //$path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI', 'http:/');
+        //$filename = $file instanceof UploadedFile ? $file->hashName() : $file;
+        //return "{$path}/{$this->uploadDir()}/{$filename}";
+        return Storage::url($this->relativeFilePath($file));
     }
 }

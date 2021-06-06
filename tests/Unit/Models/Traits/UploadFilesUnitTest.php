@@ -19,6 +19,10 @@ class UploadFilesUnitTest extends TestCase
         $this->obj = new UploadFilesStub();
     }
 
+    public function testRelativePath() {
+        $this->assertEquals("1/video.mp4", $this->obj->relativeFilePath('video.mp4'));
+    }
+
     public function testUploadFile() {
         Storage::fake();
         $file = UploadedFile::fake()->create('video.mp4');
@@ -111,11 +115,13 @@ class UploadFilesUnitTest extends TestCase
         $this->assertEquals([$file1, $file2], $files);
     }
 
-    public function testPublicUlrFile()
-    {
-        $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI');
-        $file = UploadedFile::fake()->create('video.mp4');
-        $fileUrl = $this->obj->publicUlrFile($file);
-        $this->assertEquals("{$path}/1/{$file->hashName()}", $fileUrl);
-    }
+    // public function testPublicUlrFile()
+    // {
+    //     $path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI');
+    //     $file = UploadedFile::fake()->create('video.mp4');
+    //     $fileUrl = $this->obj->publicUlrFile($file);
+
+    //     dump($fileUrl);
+    //     $this->assertEquals("{$path}/1/{$file->hashName()}", $fileUrl);
+    // }
 }
