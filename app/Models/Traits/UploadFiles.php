@@ -79,7 +79,7 @@ trait UploadFiles
         Storage::delete("{$this->uploadDir()}/{$filename}");
     }
 
-    public function publicUlrFile($file) {
+    public function publicUrlFile($file) {
         //$path = env('GOOGLE_CLOUD_STORAGE_PUBLIC_API_URI', 'http:/');
         //$filename = $file instanceof UploadedFile ? $file->hashName() : $file;
         //return "{$path}/{$this->uploadDir()}/{$filename}";
