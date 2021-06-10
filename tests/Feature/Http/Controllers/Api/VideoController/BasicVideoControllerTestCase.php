@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\TestResponse;
 use Tests\TestCase;
 use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
@@ -34,17 +35,42 @@ abstract class BasicVideoControllerTestCase extends TestCase
         'thumb_file_url',
         'banner_file_url',
         'trailer_file_url',
-        'genres',
-        'categories',
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
+        'categories' => [
+            '*' => [
+                'id',
+                'name',
+                'description',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at'
+            ]
+        ],
+        'genres' => [
+            '*' => [
+                'id',
+                'name',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at'
+            ]
+        ]
     ];
-
 
     protected function setUp(): void 
     {
         parent::setUp();
+        $this->video = factory(Video::class)->create([
+            'opened' => false,
+            'video_file' => 'video.mp4',
+            'thumb_file' => 'thumb.jpg',
+            'banner_file' => 'banner.jpg',
+            'trailer_file' => 'trailer.mp4'
+        ]);
 
         $this->category = factory(Category::class)->create();
         $this->genre = factory(Genre::class)->create();
@@ -59,9 +85,6 @@ abstract class BasicVideoControllerTestCase extends TestCase
             'categories_id' => [$this->category->id],
             'genres_id' => [$this->genre->id]
         ];
-    
-
-        $this->video = factory(Video::class)->create(['opened' => false]);
     }
 
     protected function routeStore() {
@@ -74,5 +97,19 @@ abstract class BasicVideoControllerTestCase extends TestCase
 
     protected function model() {
         return Video::class;
+    }
+
+    protected function assertIfFilesUrlExists(Video $video, TestResponse $response) 
+    {
+        $fileFields = Video::$fileFields;
+        $data = $response->json('data');
+        $data = array_key_exists(0, $data) ? $data[0] : $data;
+        foreach($fileFields as $field) {
+            $file = $video->{$field};
+            $this->assertEquals(
+                \Storage::url($video->relativeFilePath($file)),
+                $data[$field . '_url']
+            );
+        }
     }
 }

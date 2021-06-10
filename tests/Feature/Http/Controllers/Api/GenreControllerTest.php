@@ -26,7 +26,17 @@ class GenreControllerTest extends TestCase
         'created_at',
         'updated_at',
         'deleted_at',
-        "categories"
+        "categories" => [
+            '*' => [
+                'id',
+                'name',
+                'description',
+                'is_active',
+                'created_at',
+                'updated_at',
+                'deleted_at'
+            ]
+        ]
     ];
 
     protected function setUp(): void 
@@ -145,54 +155,6 @@ class GenreControllerTest extends TestCase
             $this->assertRelations($this->genre, $relations);
             $this->validateResource($response);
         }
-    }
-
-    public function testStore() {
-        $categoryId = factory(Category::class)->create()->id;
-
-        $data = [
-            'name' => 'test'
-        ];
-        $response = $this->assertStore(
-            $data + ['categories_id' => [$categoryId]],
-            $data + ['is_active' => true, 'deleted_at' => null]
-        );
-        $response->assertJsonStructure([
-            'data' => $this->serializedFields
-        ]);
-        $this->assertHasCategory($response->json('data.id'), $categoryId);
-        $this->validateResource($response);
-
-        $data = [
-            'name' => 'test',
-            'is_active' => false
-        ];
-        $response = $this->assertStore(
-            $data + ['categories_id' => [$categoryId]],
-            $data + ['is_active' => false]
-        );
-        $this->validateResource($response);
-    }
-
-    public function testUpdate() {
-        $categoryId = factory(Category::class)->create()->id;
-
-        $this->genre = factory(Genre::class)->create([
-            'is_active' => false
-        ]);
-        $data = [
-            'name' => 'test',
-            'is_active' => true
-        ];
-        $response = $this->assertUpdate(
-            $data + ['categories_id' => [$categoryId]],
-            $data + ['deleted_at' => null]
-        );
-        $response->assertJsonStructure([
-            'data' => $this->serializedFields
-        ]);
-        $this->assertHasCategory($response->json('data.id'), $categoryId);
-        $this->validateResource($response);
     }
 
     private function assertHasCategory($genreId, $categoryId) {

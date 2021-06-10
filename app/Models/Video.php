@@ -109,7 +109,6 @@ class Video extends Model
     }
 
     public function uploadDir(){
-        //dump('aqui no uploadr');
         return $this->id;
     }
 

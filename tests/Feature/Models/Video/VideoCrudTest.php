@@ -59,7 +59,6 @@ class VideoCrudTest extends BaseVideoTestCase
 
     public function testCreateWithBasicFields()
     {
-        //dump('antes do create');
         $video = Video::create($this->defaultData + $this->fileFieldsData);
         $video->refresh();
 

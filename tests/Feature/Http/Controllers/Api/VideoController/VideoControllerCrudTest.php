@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
 use App\Rules\GenresHasCategoriesRule;
+use Illuminate\Foundation\Testing\TestResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,6 +31,7 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
             ]);
         $resource = VideoResource::collection([$this->video]);
         $this->assertResource($response, $resource);
+        $this->assertIfFilesUrlExists($this->video, $response);
     }
 
     public function testInvalidationRequired() {
@@ -189,7 +191,8 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
                 $response->json('data.id'),
                 $value['send_data']['genres_id'][0]
             );
-            $this->validateResource($response);            
+            $this->validateResource($response);    
+            //$this->assertIfFilesUrlExists($video, $response); // does not have files
             
             $response = $this->assertUpdate($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
             $response->assertJsonStructure([
@@ -204,7 +207,8 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
                 $response->json('data.id'),
                 $value['send_data']['genres_id'][0]
             );
-            $this->validateResource($response);            
+            $this->validateResource($response);  
+            $this->assertIfFilesUrlExists($this->video, $response);
         }
     }
 
@@ -270,6 +274,7 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
                 'data' => $this->serializedFields
             ]);
         $this->validateResource($response);
+        $this->assertIfFilesUrlExists($this->video, $response);
     }
 
     public function testDestroy() {
@@ -284,4 +289,7 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
         $resource = new VideoResource(Video::find($id));
         $this->assertResource($response, $resource);
     }
+
 }
+
+
