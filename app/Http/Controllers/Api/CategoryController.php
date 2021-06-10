@@ -34,5 +34,4 @@ class CategoryController extends BasicCrudController
     protected function resource() {
         return CategoryResource::class;
     }
-
 }

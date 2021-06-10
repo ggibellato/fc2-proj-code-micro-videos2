@@ -6,8 +6,9 @@ use App\Http\Controllers\Api\BasicCrudController;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Tests\Stubs\Models\CategoryStub;
 use Tests\Stubs\Controllers\CategoryControllerStub;
+use Tests\Stubs\Models\CategoryStub;
+use Tests\Stubs\Resources\CategoryResourceStub;
 use Tests\TestCase;
 
 class BasicCrudControllerTest extends TestCase
@@ -32,8 +33,9 @@ class BasicCrudControllerTest extends TestCase
 
     public function testIndex() 
     {
-        $result = $this->controller->index()->toArray();
-        $this->assertEquals([$this->category->toArray()], $result);
+        $result = $this->controller->index();
+        $resource = new CategoryResourceStub($this->category);
+        $this->assertEquals($result->resolve(), [$resource->resolve()]);
     }
 
     public function testInvalidationDataInStore() 
@@ -58,9 +60,10 @@ class BasicCrudControllerTest extends TestCase
             ->once()
             ->andReturn(['name' => 'test_name', 'description' => 'test_description']);
         $obj = $this->controller->store($request);
+        $resource = new CategoryResourceStub(CategoryStub::find(2)->toArray());
         $this->assertEquals(
-            CategoryStub::find(2)->toArray(),
-            $obj->toArray()
+            $resource->resolve(),
+            $obj->resolve()
         );
     }
 
@@ -89,9 +92,10 @@ class BasicCrudControllerTest extends TestCase
     public function testShow() 
     {
         $obj = $this->controller->show($this->category->id);
+        $resource = new CategoryResourceStub(CategoryStub::find(1)->toArray());
         $this->assertEquals(
-            CategoryStub::find(1)->toArray(),
-            $obj->toArray()
+            $resource->resolve(),
+            $obj->resolve()
         );
     }
 
@@ -104,9 +108,10 @@ class BasicCrudControllerTest extends TestCase
             ->once()
             ->andReturn(['name' => 'test_name_update', 'description' => 'test_description_update']);
         $obj = $this->controller->update($request, $this->category->id);
+        $resource = new CategoryResourceStub(CategoryStub::find($this->category->id)->toArray());
         $this->assertEquals(
-            $obj->toArray(),
-            CategoryStub::find($this->category->id)->toArray()
+            $obj->resolve(),
+            $resource->resolve()
         );
     }
 

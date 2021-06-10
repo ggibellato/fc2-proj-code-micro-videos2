@@ -7,17 +7,41 @@ use App\Models\Genre;
 use App\Models\Video;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
+use Tests\Traits\TestResources;
 use Tests\Traits\TestSaves;
 use Tests\Traits\TestValidations;
 
 abstract class BasicVideoControllerTestCase extends TestCase
 {
-    use DatabaseMigrations, TestValidations, TestSaves;
+    use DatabaseMigrations, TestValidations, TestSaves, TestResources;
 
     protected $video;
     protected $sendData;
     protected $category;
     protected $genre;
+    protected $serializedFields = [
+        'title',
+        'description',
+        'year_launched',
+        'opened',
+        'rating',
+        'duration',
+        'video_file',
+        'thumb_file',
+        'banner_file',
+        'trailer_file',
+        'video_file_url',
+        'thumb_file_url',
+        'banner_file_url',
+        'trailer_file_url',
+        'genres',
+        'categories',
+        'created_at',
+        'updated_at',
+        'deleted_at'
+    ];
+
+
     protected function setUp(): void 
     {
         parent::setUp();

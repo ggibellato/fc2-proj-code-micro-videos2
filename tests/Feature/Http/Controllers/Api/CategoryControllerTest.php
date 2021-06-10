@@ -58,10 +58,7 @@ class CategoryControllerTest extends TestCase
             ->assertJsonStructure([
                 'data' => $this->serializedFields
             ]);
-
-        $id = $response->json('data.id');
-        $resource = new CategoryResource(Category::find($id));
-        $this->assertResource($response, $resource);
+        $this->validateResource($response);
     }
 
     public function testInvalidationData() {
@@ -102,10 +99,7 @@ class CategoryControllerTest extends TestCase
             'description' => 'description',
             'is_active' => false
         ]);
-        $id = $response->json('data.id');
-
-        $resource = new CategoryResource(Category::find($id));
-        $this->assertResource($response, $resource);
+        $this->validateResource($response);
     }
 
     public function testUpdate() {
@@ -123,10 +117,8 @@ class CategoryControllerTest extends TestCase
         $response->assertJsonStructure([
             'data' => $this->serializedFields
         ]);
-        $id = $response->json('data.id');
-        $resource = new CategoryResource(Category::find($id));
-        $this->assertResource($response, $resource);
-
+        $this->validateResource($response);
+        
         $data = [
             'name' => 'test',
             'description' => ''
@@ -157,5 +149,11 @@ class CategoryControllerTest extends TestCase
 
     protected function model() {
         return Category::class;
+    }
+
+    private function validateResource($response) {
+        $id = $response->json('data.id');
+        $resource = new CategoryResource(Category::find($id));
+        $this->assertResource($response, $resource);
     }
 }
