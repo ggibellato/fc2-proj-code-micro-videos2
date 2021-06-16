@@ -5,8 +5,8 @@ steps:
   args: 
     - kms 
     - decrypt 
-    - --ciphertext-file=./storage/credentials/google/fc2-projeto-storage.json.enc 
-    - --plaintext-file=./storage/credentials/google/fc2-projeto-storage.json 
+    - --ciphertext-file=./backend/storage/credentials/google/fc2-projeto-storage.json.enc 
+    - --plaintext-file=./backend/storage/credentials/google/fc2-projeto-storage.json 
     - --location=global 
     - --keyring=code-micro-videos 
     - --key=service-account
