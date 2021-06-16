@@ -29,17 +29,17 @@ steps:
 - id: "Rodando composer"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
-  dir: 'backend'
+  dir: '/var/www/backend'
 
 - id: "Copiando .env"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.example', '.env']
-  dir: 'backend'
+  dir: '/var/www/backend'
 
 - id: "Copiando .env.testing"
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.testing.example', '.env.testing']
-  dir: 'backend'
+  dir: '/var/www/backend'
 
 - id: "Rodando key:generate"
   name: 'docker'
