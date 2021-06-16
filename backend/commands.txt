@@ -38,8 +38,8 @@ vendor/bin/phpunit --filter testSyncCategories GenreControllerTest /var/www/test
 vendor/bin/phpunit --filter testSyncCategories VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
 
 
-vendor/bin/phpunit --filter VideoControllerUploadTest /var/www/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadTest.php
-
+vendor/bin/phpunit --filter VideoControllerUploadsTest /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadsTest.php
+vendor/bin/phpunit --filter VideoCrudTest /var/www/backend/tests/Feature/Models/Video/VideoCrudTest.php
 
 vendor/bin/phpunit --filter testInvalidationFileFields VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerTest.php
 

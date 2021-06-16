@@ -59,7 +59,7 @@ class VideoControllerUploadsTest extends BasicVideoControllerTestCase
         $response = $this->json(
             'POST',
             $this->routeStore(),
-            $this->sendData + 
+            $this->sendData +
             $files
         );
         $response->assertStatus(201);
@@ -77,13 +77,14 @@ class VideoControllerUploadsTest extends BasicVideoControllerTestCase
         );
         $response->assertStatus(200);
         $this->assertFilesOnPersist($response, $files);
-        $this->assertIfFilesUrlExists($this->video, $response);
+        $video = Video::find($response->json('data.id'));
+        $this->assertIfFilesUrlExists($video, $response);
 
         $newFiles = [
             'video_file' => UploadedFile::fake()->create('video_file.mp4'),
             'thumb_file' => UploadedFile::fake()->create('thumb_file.jpg')
         ];
-        
+
         $response = $this->json(
             'PUT', $this->routeUpdate(), $this->sendData + $newFiles
         );
@@ -96,14 +97,14 @@ class VideoControllerUploadsTest extends BasicVideoControllerTestCase
         Storage::assertMissing($video->relativeFilePath($files['video_file']->hashName()));
     }
 
-    protected function assertFilesOnPersist(TestResponse $response, $files) 
+    protected function assertFilesOnPersist(TestResponse $response, $files)
     {
         $id = $response->json('data.id');
         $video = Video::find($id);
         $this->assertFileExistsInStorage($video, $files);
     }
 
-    protected function getFiles() 
+    protected function getFiles()
     {
         return [
             'video_file' => UploadedFile::fake()->create('video_file.mp4'),
