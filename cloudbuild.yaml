@@ -28,15 +28,18 @@ steps:
 
 - id: "Rodando composer"
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'backend/composer', 'install']
+  args: ['exec', '-t', 'micro-videos-app', 'composer', 'install']
+  dir: 'backend'
 
 - id: "Copiando .env"
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'cp', 'backend/.env.example', 'backend/.env']
+  args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.example', '.env']
+  dir: 'backend'
 
 - id: "Copiando .env.testing"
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'cp', 'backend/.env.testing.example', 'backend/.env.testing']
+  args: ['exec', '-t', 'micro-videos-app', 'cp', '.env.testing.example', '.env.testing']
+  dir: 'backend'
 
 - id: "Rodando key:generate"
   name: 'docker'
