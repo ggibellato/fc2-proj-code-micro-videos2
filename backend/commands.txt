@@ -52,3 +52,4 @@ vendor/bin/phpunit --filter UploadFilesUnitTest /var/www/tests/Unit/Models/Trait
 php artisan make:test [ClassName] [--unit]
 
 php artisan make:test CategoryTest --unit
+
