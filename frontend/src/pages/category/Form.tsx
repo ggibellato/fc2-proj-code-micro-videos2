@@ -56,7 +56,7 @@ export default function Form() {
             />
             Ativo?
             <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues, null)}>Salvar</Button>
+                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
                 <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
             </Box>                
         </form>

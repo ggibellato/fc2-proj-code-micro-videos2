@@ -4,8 +4,8 @@ import CategoryList from '../pages/category/PageList';
 import PageFormCategory from '../pages/category/PageForm';
 import GenreList from '../pages/genre/PageList';
 import PageFormGenre from '../pages/genre/PageForm';
-import CastMemberList from '../pages/castmember/PageList';
-import PageFormCastMember from '../pages/castmember/PageForm';
+import CastMemberList from '../pages/cast-member/PageList';
+import PageFormCastMember from '../pages/cast-member/PageForm';
 
 export interface MyRouteProps extends RouteProps {
     name: string;
@@ -51,7 +51,7 @@ const routes: MyRouteProps[] =  [
     {
         name: 'castmembers.list',
         label: 'Listar membros do elenco',
-        path: '/cast-members',
+        path: '/castmembers',
         component: CastMemberList,
         exact: true
     },

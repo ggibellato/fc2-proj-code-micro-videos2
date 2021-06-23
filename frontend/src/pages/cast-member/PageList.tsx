@@ -6,14 +6,14 @@ import Table from './Table';
 
 const PageList = () => {
     return (
-        <Page title="Listagem de categorias">
+        <Page title="Listagem de membros do elenco">
             <Box>
                 <Fab
-                    title="Adicionar categoria"
+                    title="Adicionar membro do elenco"
                     color={'secondary'}
                     size="small"
                     component={Link}
-                    to="/categories/create"
+                    to="/castmembers/create"
                 >
                     <AddIcon/>
                 </Fab>                
