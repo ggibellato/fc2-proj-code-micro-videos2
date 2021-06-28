@@ -7,7 +7,7 @@ import Table from './Table';
 const PageList = () => {
     return (
         <Page title="Listagem de categorias">
-            <Box>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title="Adicionar categoria"
                     color={'secondary'}

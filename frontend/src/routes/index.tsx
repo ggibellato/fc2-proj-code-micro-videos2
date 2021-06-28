@@ -35,6 +35,13 @@ const routes: MyRouteProps[] =  [
         exact: true
     },
     {
+        name: 'categories.edit',
+        label: 'Editar categoria',
+        path: '/categories/:id/edit',
+        component: PageFormCategory,
+        exact: true
+    },
+    {
         name: 'genres.list',
         label: 'Listar gêneros',
         path: '/genres',
@@ -49,16 +56,30 @@ const routes: MyRouteProps[] =  [
         exact: true
     },
     {
-        name: 'castmembers.list',
+        name: 'genres.edit',
+        label: 'Editar gênero',
+        path: '/genres/:id/edit',
+        component: PageFormGenre,
+        exact: true
+    },
+    {
+        name: 'cast_members.list',
         label: 'Listar membros do elenco',
-        path: '/castmembers',
+        path: '/cast-members',
         component: CastMemberList,
         exact: true
     },
     {
-        name: 'castmembers.create',
+        name: 'cast_members.create',
         label: 'Criar membro do elenco',
-        path: '/castmembers/create',
+        path: '/cast-members/create',
+        component: PageFormCastMember,
+        exact: true
+    },
+    {
+        name: 'cast_members.edit',
+        label: 'Editar membro do elenco',
+        path: '/cast-members/:id/edit',
         component: PageFormCastMember,
         exact: true
     }

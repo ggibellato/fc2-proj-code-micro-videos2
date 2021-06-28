@@ -7,13 +7,13 @@ import Table from './Table';
 const PageList = () => {
     return (
         <Page title="Listagem de membros do elenco">
-            <Box>
+            <Box dir={'rtl'} paddingBottom={2}>
                 <Fab
                     title="Adicionar membro do elenco"
                     color={'secondary'}
                     size="small"
                     component={Link}
-                    to="/castmembers/create"
+                    to="/cast-members/create"
                 >
                     <AddIcon/>
                 </Fab>                
