@@ -1,4 +1,4 @@
-import { Box, Button, ButtonProps, Checkbox, FormControlLabel, makeStyles, MenuItem, TextField, Theme } from '@material-ui/core'
+import { Checkbox, FormControlLabel, MenuItem, TextField } from '@material-ui/core'
 import { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
@@ -7,18 +7,9 @@ import categoryHttp from '../../util/http/category-http';
 import * as yup from "../../util/vendor/yup/yup";
 import { useYupValidationResolver } from '../../util/yup';
 import { useSnackbar} from 'notistack';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        },
-        formLabel: {
-            margin: theme.spacing(2)
-        }
-
-    }
-});
+import { Category, Genre } from '../../util/models';
+import SubmitActions from '../../components/SubmitActions';
+import { DefaultForm } from '../../components/DefaultForm';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -32,11 +23,9 @@ const validationSchema = yup.object().shape({
 });
 
 export default function Form() {
-    const classes = useStyles();
-
     const resolver = useYupValidationResolver(validationSchema);
 
-    const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<{name:any, categories_id:any, is_active:any}>({
+    const { register, handleSubmit, getValues, setValue, errors, reset, watch, trigger } = useForm<{name:any, categories_id:any, is_active:any}>({
         resolver,
         defaultValues: {
             categories_id: [],
@@ -46,33 +35,29 @@ export default function Form() {
     const snackbar = useSnackbar()
     const history = useHistory();
     const {id} = useParams<any>();
-    const [genre, setGenre] = useState<{id:string} | null>(null);
-    const [categories, setCategories] = useState<any[]>([]);
+    const [genre, setGenre] = useState<Genre | null>(null);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: 'secondary',
-        variant: 'contained',
-        disabled: loading,
-    };
-
     useEffect(() => {
-        async function loadData(){
+        let isSubscribed = true;
+        (async () => {
             setLoading(true);
-            const promises = [categoryHttp.list()];            
+            const promises = [categoryHttp.list({queryParams: {all: ''}})];            
             if(id) {
                 promises.push(genreHttp.get(id));
             }
             try {
                 const [categoriesResponse, genreResponse] = await Promise.all(promises);
-                setCategories(categoriesResponse.data.data);
-                if(id) {
-                    setGenre(genreResponse.data.data);
-                    reset({
-                        ...genreResponse.data.data,
-                        categories_id: genreResponse.data.data.categories.map((category:any) => category.id)
-                    });
+                if(isSubscribed) {
+                    setCategories(categoriesResponse.data.data);
+                    if(id) {
+                        setGenre(genreResponse.data.data);
+                        reset({
+                            ...genreResponse.data.data,
+                            categories_id: genreResponse.data.data.categories.map((category:any) => category.id)
+                        });
+                    }
                 }
             } catch (error) {
                 snackbar.enqueueSnackbar(
@@ -82,10 +67,12 @@ export default function Form() {
             } finally {
                 setLoading(false);
             }
-        }
+        })();
 
-        loadData();
-    }, []);
+        return () => {
+            isSubscribed = false;
+        };
+    }, [id, snackbar, reset]);
 
     useEffect(() => {
         register({name: "categories_id"});
@@ -113,7 +100,7 @@ export default function Form() {
                 : history.push('/genres');
             })
         } catch (error) {
-            console.log(error);
+            console.error(error);
             snackbar.enqueueSnackbar('Nao foi possível salvar o gênero', {
                 variant: 'error'
             });
@@ -123,7 +110,7 @@ export default function Form() {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs: 12, md: 6}}  onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 name="name"
                 label="Nome"
@@ -176,10 +163,10 @@ export default function Form() {
                     />
                 }
             />
-            <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>                
-        </form>
+            <SubmitActions 
+                disabledButtons={loading}
+                handleSave={() => trigger().then((isValid) => {isValid && onSubmit(getValues(), null)})} 
+            />
+        </DefaultForm>
     )
 }

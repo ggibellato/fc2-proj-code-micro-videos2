@@ -66,4 +66,11 @@
       0 => 'Superbalist\\LaravelGoogleCloudStorage\\GoogleCloudStorageServiceProvider',
     ),
   ),
+  'tucker-eric/eloquentfilter' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'EloquentFilter\\ServiceProvider',
+    ),
+  ),
 );

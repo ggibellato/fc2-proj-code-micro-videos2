@@ -28,6 +28,11 @@ php artisan make:migration create_genre_video_table
 php artisan make:migration create_category_genre_table
 
 vendor/bin/phpunit
+
+vendor/bin/phpunit --filter testIfUseTraits CategoryUnitTest /var/www/backend/tests/Unit/Models/CategoryUnitTest.php
+vendor/bin/phpunit --filter testIndex BasicCrudControllerTest /var/www/backend/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
+vendor/bin/phpunit --filter testIndex CategoryControllerTest /var/www/backend/tests/Feature/Http/Controllers/Api/CategoryControllerTest.php
+
 vendor/bin/phpunit --filter testSyncCategories VideoTest /var/www/backend/tests/Feature/Models/VideoTest.php
 vendor/bin/phpunit --filter testIncrementingAttribute VideoUnitTest /var/www/tests/Unit/Models/VideoUnitTest.php
 vendor/bin/phpunit --filter testRollbackStore GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php

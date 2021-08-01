@@ -1,4 +1,4 @@
-import { Box, Button, ButtonProps, FormControl, FormControlLabel, FormHelperText, FormLabel, makeStyles, Radio, RadioGroup, TextField, Theme } from '@material-ui/core'
+import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup, TextField } from '@material-ui/core'
 import { useEffect, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
@@ -6,17 +6,9 @@ import castMemberHttp from '../../util/http/castmember-http';
 import * as yup from "../../util/vendor/yup/yup";
 import { useYupValidationResolver } from '../../util/yup';
 import { useSnackbar} from 'notistack';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        },
-        formLabel: {
-            margin: theme.spacing(2)
-        }
-    }
-})
+import { CastMember } from '../../util/models';
+import SubmitActions from '../../components/SubmitActions';
+import { DefaultForm } from '../../components/DefaultForm';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -34,11 +26,9 @@ type FormData = {
 };
 
 export default function Form() {
-    const classes = useStyles();
-
     const resolver = useYupValidationResolver(validationSchema);
     
-    const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<FormData>({
+    const { register, handleSubmit, getValues, setValue, errors, reset, watch, trigger } = useForm<FormData>({
         resolver,
         defaultValues: {
             name: ''
@@ -48,28 +38,24 @@ export default function Form() {
     const snackbar = useSnackbar()
     const history = useHistory();
     const {id} = useParams<any>();
-    const [castMember, setCastMember] = useState<{id:string} | null>(null);
+    const [castMember, setCastMember] = useState<CastMember | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: 'secondary',
-        variant: 'contained',
-        disabled: loading,
-    };
 
     useEffect(() => {
         if(!id) {
             return;
         }
-        async function getCastmember(){
+        let isSubscribed = true;
+        (async () => {
             setLoading(true);
             try {
                 const {data} = await castMemberHttp.get(id);
-                setCastMember(data.data);
-                reset(data.data);
+                if(isSubscribed) {
+                    setCastMember(data.data);
+                    reset(data.data);
+                }
             } catch(error) {
-                console.log(error);
+                console.error(error);
                 snackbar.enqueueSnackbar(
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
@@ -77,10 +63,12 @@ export default function Form() {
             } finally {
                 setLoading(false);
             }
-        }
 
-        getCastmember();
-    }, []);
+            return () => {
+                isSubscribed = false;
+            };
+        })();
+    }, [id, snackbar, reset]);
 
     useEffect( () => {
         register({name: "type"})
@@ -107,7 +95,7 @@ export default function Form() {
                 : history.push('/cast-members');
             })
         } catch (error) {
-            console.log(error);
+            console.error(error);
             snackbar.enqueueSnackbar('Nao foi possível salvar o membro de elenco', {
                 variant: 'error'
             });
@@ -118,7 +106,7 @@ export default function Form() {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs: 12, md: 6}}  onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 name="name"
                 label="Nome"
@@ -150,10 +138,10 @@ export default function Form() {
                     errors.type && <FormHelperText id="type-helper-text">{errors.type.message}</FormHelperText>
                 }         
             </FormControl>
-            <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>                
-        </form>
+            <SubmitActions 
+                disabledButtons={loading}
+                handleSave={() => trigger().then((isValid) => {isValid && onSubmit(getValues(), null)})} 
+            />
+        </DefaultForm>
     )
 }
