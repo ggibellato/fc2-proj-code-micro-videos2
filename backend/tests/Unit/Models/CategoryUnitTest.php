@@ -4,6 +4,7 @@ namespace Tests\Unit\Models;
 
 use App\Models\Category;
 use App\Models\Traits\Uuid;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
 
@@ -12,7 +13,7 @@ class CategoryUnitTest extends TestCase
 
     private $category;
 
-    protected function setUp(): void 
+    protected function setUp(): void
     {
         parent::setUp();
         $this->category = new Category();
@@ -22,7 +23,8 @@ class CategoryUnitTest extends TestCase
     {
         $traits = [
             SoftDeletes::class,
-            Uuid::class
+            Uuid::class,
+            Filterable::class
         ];
         $categoryTraits = array_keys(class_uses(Category::class));
         $this->assertEquals($traits, $categoryTraits);
@@ -39,7 +41,7 @@ class CategoryUnitTest extends TestCase
         $this->assertEqualsCanonicalizing($dates, $this->category->getDates()) ;
     }
 
-    public function testCastAttribute() 
+    public function testCastAttribute()
     {
         $casts = ['is_active' => 'boolean'];
         $this->assertEquals($casts, $this->category->getCasts());

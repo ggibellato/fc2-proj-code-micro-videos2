@@ -1,4 +1,4 @@
-import { Box, Button, ButtonProps, Checkbox, FormControlLabel, makeStyles, TextField, Theme } from '@material-ui/core'
+import { Checkbox, FormControlLabel, TextField } from '@material-ui/core'
 import { useEffect, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
@@ -6,14 +6,9 @@ import categoryHttp from '../../util/http/category-http';
 import * as yup from "../../util/vendor/yup/yup";
 import { useYupValidationResolver } from '../../util/yup';
 import { useSnackbar} from 'notistack';
-
-const useStyles = makeStyles((theme: Theme) => {
-    return {
-        submit: {
-            margin: theme.spacing(1)
-        }
-    }
-})
+import { Category } from '../../util/models';
+import SubmitActions from '../../components/SubmitActions';
+import { DefaultForm } from '../../components/DefaultForm';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -29,11 +24,9 @@ type FormData = {
 };
 
 export default function Form() {
-    const classes = useStyles();
-
     const resolver = useYupValidationResolver(validationSchema);
 
-    const { register, handleSubmit, getValues, setValue, errors, reset, watch } = useForm<FormData>({
+    const { register, handleSubmit, getValues, setValue, errors, reset, watch, trigger } = useForm<FormData>({
         resolver,
         defaultValues: {
             is_active: true,
@@ -44,28 +37,24 @@ export default function Form() {
     const snackbar = useSnackbar()
     const history = useHistory();
     const {id} = useParams<any>();
-    const [category, setCategory] = useState<{id:string} | null>(null);
+    const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const buttonProps: ButtonProps = {
-        className: classes.submit,
-        color: 'secondary',
-        variant: 'contained',
-        disabled: loading,
-    };
 
     useEffect(() => {
         if(!id) {
             return;
         }
-        async function getCategory() {
+        let isSubscribed = true;
+        (async () => {
             setLoading(true);
             try {
                 const {data} = await categoryHttp.get(id);
-                setCategory(data.data);
-                reset(data.data);
+                if(isSubscribed) {
+                    setCategory(data.data);
+                    reset(data.data);
+                }
             } catch(error) {
-                console.log(error);
+                console.error(error);
                 snackbar.enqueueSnackbar(
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
@@ -73,9 +62,12 @@ export default function Form() {
             } finally {
                 setLoading(false);
             }
-        }
-        getCategory();
-    }, []);
+        })();
+
+        return () => {
+            isSubscribed = false;
+        };
+    }, [id, snackbar, reset]);
 
     useEffect(() =>{
         register({name: "is_active"});
@@ -104,7 +96,7 @@ export default function Form() {
             })
 
         } catch(error) {
-            console.log(error);
+            console.error(error);
             snackbar.enqueueSnackbar('Nao foi possível salvar a categoria', {
                 variant: 'error'
             });
@@ -114,7 +106,7 @@ export default function Form() {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <DefaultForm GridItemProps={{xs: 12, md: 6}}  onSubmit={handleSubmit(onSubmit)}>
             <TextField
                 name="name"
                 label="Nome"
@@ -151,10 +143,10 @@ export default function Form() {
                     />
                 }
             />
-            <Box dir={"rtl"}>
-                <Button {...buttonProps} onClick={() => onSubmit(getValues(), null)}>Salvar</Button>
-                <Button {...buttonProps} type="submit">Salvar e continuar editando</Button>
-            </Box>                
-        </form>
+            <SubmitActions 
+                disabledButtons={loading}
+                handleSave={() => trigger().then((isValid) => {isValid && onSubmit(getValues(), null)})} 
+            />
+        </DefaultForm>
     )
 }

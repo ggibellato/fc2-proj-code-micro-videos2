@@ -12,7 +12,7 @@ export const useYupValidationResolver = (validationSchema: any) =>
                     errors: {}
                 };
             } catch (errors) {
-                console.log(errors);
+                console.error(errors);
                 return {
                     values: {},
                     errors: errors.inner.reduce(

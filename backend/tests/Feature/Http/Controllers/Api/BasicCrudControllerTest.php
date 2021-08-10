@@ -16,7 +16,7 @@ class BasicCrudControllerTest extends TestCase
     private $controller;
     private $category;
 
-    protected function setUp(): void 
+    protected function setUp(): void
     {
         parent::setUp();
         CategoryStub::dropTable();
@@ -31,9 +31,23 @@ class BasicCrudControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function testIndex() 
+    public function testIndex()
     {
-        $result = $this->controller->index();
+        /** @var \Mockery\MockInterface|Request */
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(null)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+            // ->shouldReceive('all')
+            // ->once()
+            // ->andReturn(['name' => '']);
+
+        $result = $this->controller->index($request);
+
         $resource = new CategoryResourceStub($this->category);
         $this->assertEquals($result->resolve(), [$resource->resolve()]);
 
@@ -41,9 +55,135 @@ class BasicCrudControllerTest extends TestCase
         $this->assertEquals([$this->category->toArray()], $serialized['data']);
         $this->assertArrayHasKey('meta', $serialized);
         $this->assertArrayHasKey('links', $serialized);
+        $this->assertArrayHasKey('per_page', $serialized['meta']);
+        $this->assertEquals(15, $serialized['meta']['per_page']);
     }
 
-    public function testInvalidationDataInStore() 
+    public function testIndexHasAll()
+    {
+        /** @var \Mockery\MockInterface|Request */
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(null)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(true);
+
+        $result = $this->controller->index($request);
+
+        $resource = new CategoryResourceStub($this->category);
+        $this->assertEquals($result->resolve(), [$resource->resolve()]);
+
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals([$this->category->toArray()], $serialized['data']);
+        $this->assertArrayNotHasKey('meta', $serialized);
+        $this->assertArrayNotHasKey('links', $serialized);
+    }
+
+    public function testIndexPagination()
+    {
+        $this->category = $this->CreateCategoryStub(31);
+        $resource = new CategoryResourceStub($this->category);
+
+        /** @var \Mockery\MockInterface|Request */
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(10)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+        $result = $this->controller->index($request);
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals(32, $serialized['meta']['total']);
+        $this->assertEquals(10, $serialized['meta']['per_page']);
+        $this->assertEquals( 4, $serialized['meta']['last_page']);
+
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(15)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+        $result = $this->controller->index($request);
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals(15, $serialized['meta']['per_page']);
+        $this->assertEquals( 3, $serialized['meta']['last_page']);
+
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(40)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+        $result = $this->controller->index($request);
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals(40, $serialized['meta']['per_page']);
+        $this->assertEquals( 1, $serialized['meta']['last_page']);
+
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(16)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+        $result = $this->controller->index($request);
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals(16, $serialized['meta']['per_page']);
+        $this->assertEquals( 2, $serialized['meta']['last_page']);
+
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(32)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+        $result = $this->controller->index($request);
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals(32, $serialized['meta']['per_page']);
+        $this->assertEquals( 1, $serialized['meta']['last_page']);
+    }
+
+    public function testIndexSearch()
+    {
+        $this->category = $this->CreateCategoryStub(31);
+        $resource = new CategoryResourceStub($this->category);
+
+        /** @var \Mockery\MockInterface|Request */
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn(10)
+            ->shouldReceive('has')
+            ->once()
+            ->andReturn(false);
+        $result = $this->controller->index($request);
+        $serialized = $result->response()->getData(true);
+        $this->assertEquals(32, $serialized['meta']['total']);
+        $this->assertEquals(10, $serialized['meta']['per_page']);
+        $this->assertEquals( 4, $serialized['meta']['last_page']);
+    }
+
+    protected function CreateCategoryStub(int $records)
+    {
+        for ($x = 1; $x <= $records; $x++) {
+            CategoryStub::create(['name' => 'PAGINATION' . $x, 'description' => 'PAGINATION_description' . $x]);
+        }
+    }
+
+    public function testInvalidationDataInStore()
     {
         $this->expectException(ValidationException::class);
 
@@ -56,7 +196,7 @@ class BasicCrudControllerTest extends TestCase
         $this->controller->store($request);
     }
 
-    public function testStore() 
+    public function testStore()
     {
         /** @var \Mockery\MockInterface|Request */
         $request = \Mockery::mock(Request::class);
@@ -100,7 +240,7 @@ class BasicCrudControllerTest extends TestCase
         $reflectionMethod->invokeArgs($this->controller, [0]);
     }
 
-    public function testShow() 
+    public function testShow()
     {
         $result = $this->controller->show($this->category->id);
         $resource = new CategoryResourceStub(CategoryStub::find(1)->toArray());

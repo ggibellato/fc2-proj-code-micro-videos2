@@ -18,8 +18,8 @@ class CategoryTest extends TestCase
         $this->assertCount(1, Category::all());
         $this->assertEqualsCanonicalizing(
             [
-                'id', 
-                'name', 
+                'id',
+                'name',
                 'description',
                 'is_active',
                 'created_at',

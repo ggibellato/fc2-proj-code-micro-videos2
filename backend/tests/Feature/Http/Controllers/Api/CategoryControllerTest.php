@@ -25,7 +25,7 @@ class CategoryControllerTest extends TestCase
         'deleted_at'
     ];
 
-    protected function setUp(): void 
+    protected function setUp(): void
     {
         parent::setUp();
         $this->category = factory(Category::class)->create();
@@ -118,7 +118,7 @@ class CategoryControllerTest extends TestCase
             'data' => $this->serializedFields
         ]);
         $this->validateResource($response);
-        
+
         $data = [
             'name' => 'test',
             'description' => ''
