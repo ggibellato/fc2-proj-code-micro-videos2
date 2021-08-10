@@ -1,19 +1,29 @@
-import { MUIDataTableColumn } from "mui-datatables";
-import { Dispatch, Reducer, useReducer, useState } from "react";
-import reducer, { Creators } from "../store/filter";
-import { Actions as FilterActions, State as FilterState } from "../store/filter/types";
-import { useDebounce } from 'use-debounce';
-import {useHistory} from 'react-router';
 import {History} from 'history';
 import {isEqual} from 'lodash';
+import { MUIDataTableColumn } from "mui-datatables";
+import { Dispatch, Reducer, useReducer, useState } from "react";
+import {useHistory} from 'react-router';
+import { useDebounce } from 'use-debounce';
+
+import { MuiDataTableRefComponent } from "../components/Table";
+import reducer, { Creators } from "../store/filter";
+import { Actions as FilterActions, State as FilterState } from "../store/filter/types";
 import * as yup from '../util/vendor/yup/yup';
 
 interface FilterManagerOptions {
     columns: MUIDataTableColumn[];
+    tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
     rowsPerPage: number;
     rowsPerPageOptions: number[];
     debounceTime: number;
     history: History;
+    extraFilter?: ExtraFilter;
+}
+
+interface ExtraFilter {
+    getStateFromURL: (queryParams: URLSearchParams) => any;
+    formatSearchParams: (debouncedState: FilterState) => any;
+    createValidationSchema: () => any;
 }
 
 interface UseFilterOptions extends Omit<FilterManagerOptions, 'history'> {
@@ -31,7 +41,6 @@ export default function useFilter(options: UseFilterOptions) {
     filterManager.state = filterState;
     filterManager.dispatch = dispatch;
 
-    console.log("useFilter");
     filterManager.applyOderInColumns();
     return {
         columns: filterManager.columns,
@@ -52,14 +61,23 @@ export class FilterManager {
     rowsPerPage: number;
     rowsPerPageOptions: number[];
     history: History;
+    extraFilter?: ExtraFilter;
+    tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
 
     constructor(options: FilterManagerOptions) {
-        const {columns, rowsPerPage, rowsPerPageOptions, history} = options;
+        const {columns, rowsPerPage, rowsPerPageOptions, history, extraFilter, tableRef} = options;
         this.columns = columns;
         this.rowsPerPage = rowsPerPage;
         this.rowsPerPageOptions = rowsPerPageOptions;
         this.history = history;
+        this.extraFilter = extraFilter;
+        this.tableRef= tableRef;
         this.createValidationSchema();
+    }
+
+    private resetTablePagination() {
+        this.tableRef.current.changeRowsPerPage(this.rowsPerPage);
+        this.tableRef.current.changePage(0);
     }
 
     changeSearch(value: string | null) {
@@ -79,6 +97,11 @@ export class FilterManager {
             sort: changedColumn, 
             dir: direction.includes('desc') ? 'desc': 'asc'
         }));
+        this.resetTablePagination();
+    }
+
+    changeExtraFilter(data: any) {
+        this.dispatch(Creators.updateExtraFilter(data));
     }
 
     applyOderInColumns() {
@@ -101,6 +124,24 @@ export class FilterManager {
             cleanText = cleanText.value;
         }
         return cleanText;
+    }
+
+    resetFilter() {
+        const INITIAL_STATE = {
+            ...this.schema.cast({}),
+            search: { value: null, update: true },
+            order: {
+                sort: null,
+                dir: null
+            },
+            extraFilter: undefined,
+          };
+        this.dispatch(
+            Creators.setReset({
+              state: INITIAL_STATE,
+            })
+          );        
+        this.resetTablePagination();          
     }
 
     replaceHistory() {
@@ -139,7 +180,12 @@ export class FilterManager {
             order: {
                 sort: queryParams.get('sort'),
                 dir: queryParams.get('dir')
-            }
+            },
+            ...(
+                this.extraFilter && {
+                    extraFilter: this.extraFilter.getStateFromURL(queryParams)
+                }
+            )
         });
     }
 
@@ -154,6 +200,9 @@ export class FilterManager {
                     sort: this.state.order.sort,
                     dir: this.state.order.dir
                 }
+            ),
+            ...(
+                this.extraFilter && this.extraFilter.formatSearchParams(this.state)
             )
         };
     }
@@ -186,7 +235,12 @@ export class FilterManager {
                     .nullable()
                     .transform(value => !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value)
                     .default(null),
-            })
+            }),
+            ...(
+                this.extraFilter && {
+                    extraFilter: this.extraFilter.createValidationSchema()
+                }
+            )
         });
     }
 }

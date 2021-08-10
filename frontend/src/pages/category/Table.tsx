@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
-import { formatFromISO } from '../../util/date';
-import categoryHttp from '../../util/http/category-http';
-import { BadgeNo, BadgeYes } from '../../components/Badge';
-import { Category, ListResponse } from '../../util/models';
-import DefaultTable, { makeActionStyles, TableColumn } from '../../components/Table';
-import { useSnackbar } from 'notistack';
 import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
+import { useSnackbar } from 'notistack';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+
+import { BadgeNo, BadgeYes } from '../../components/Badge';
+import DefaultTable, { makeActionStyles, TableColumn, MuiDataTableRefComponent } from '../../components/Table';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
-import { INITIAL_STATE, Creators } from '../../store/filter';
 import useFilter from '../../hooks/useFilter';
+import { formatFromISO } from '../../util/date';
+import categoryHttp from '../../util/http/category-http';
+import { Category, ListResponse } from '../../util/models';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -18,19 +18,26 @@ const columnsDefinition: TableColumn[] = [
         label: 'ID',
         width: '30%',
         options: {
-            sort: false
+            sort: false,
+            filter: false
         }
     },
     {
         name: "name",
         label: "Nome",
-        width: "43%"
+        width: "43%",
+        options: {
+            filter: false
+        }
     },
     {
         name: "is_active",
         label: "Ativo?",
         width: "4%",
         options: {
+            filterOptions: {
+                names: ['Sim', 'Nao']
+            },
             customBodyRender(value, tableMeta, updateValue) {
                 return value ? <BadgeYes/> : <BadgeNo/>
             }
@@ -41,6 +48,7 @@ const columnsDefinition: TableColumn[] = [
         label: "Criado em",
         width: "10%",
         options: {
+            filter: false,
             customBodyRender(value, tableMeta, updateValue) {
                 return <span>{formatFromISO(value, 'dd/MM/yyyy')}</span>
             }
@@ -52,6 +60,7 @@ const columnsDefinition: TableColumn[] = [
         width: "13%",
         options: {
             sort: false,
+            filter: false,
             customBodyRender(value, tableMeta, updateValue) {
                 return (
                     <IconButton
@@ -72,26 +81,26 @@ const debouncedSearchTime = 300;
 const rowsPerPage = 15;
 const rowsPerPageOptions = [15,25,50]
 
-
 const Table = () => {
 
     const snackbar = useSnackbar();
     const subscribed = useRef(true); //current:true
     const [data, setData] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
     const {
         columns, 
         filterManager, 
         filterState, 
         debounceFilterState,
-        dispatch, 
         totalRecords, 
         setTotalRecords
     } = useFilter({
         columns: columnsDefinition,
         debounceTime: debounceTime,
+        tableRef: tableRef,
         rowsPerPage: rowsPerPage,
-        rowsPerPageOptions: rowsPerPageOptions
+        rowsPerPageOptions: rowsPerPageOptions,
     });
 
     useEffect(()=>{
@@ -128,13 +137,6 @@ const Table = () => {
             if(subscribed.current) {
                 setData(data.data);
                 setTotalRecords(data.meta.total);
-                // setSearchState( prevState => ({
-                //     ...prevState,
-                //     pagination: {
-                //         ...prevState.pagination,
-                //         total: data.meta.total
-                //     }
-                // }))                
             }
         } catch(error) {
             console.error(error);
@@ -158,6 +160,7 @@ const Table = () => {
                 data={data}
                 loading ={loading}
                 debouncedSearchTime={debouncedSearchTime}
+                ref={tableRef}
                 options ={{
                     serverSide: true,
                     searchText: filterState.search as any,
@@ -166,9 +169,7 @@ const Table = () => {
                     rowsPerPageOptions,
                     count: totalRecords,
                     customToolbar: () => (
-                        <FilterResetButton handleClick={() => { 
-                            dispatch(Creators.setReset({state:INITIAL_STATE}))
-                        }} />
+                        <FilterResetButton handleClick={() => filterManager.resetFilter()} />
                     ),
                     onSearchChange: searchText => filterManager.changeSearch(searchText),
                     onChangePage: page => filterManager.changePage(page),
