@@ -50,27 +50,6 @@ class CategoryControllerTest extends TestCase
         $this->assertResource($response, $resource);
     }
 
-    public function testIndexPerPage10()
-    {
-        $response = $this->get(route('categories.index'));
-        $response
-            ->assertStatus(200)
-            ->assertJson([
-                'meta' => ['per_page' => 10]
-            ])
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => $this->serializedFields
-                ],
-                'links' => [],
-                'meta' => []
-            ]);
-        $resource = CategoryResource::collection([$this->category]);
-        dump($resource);
-        $this->assertResource($response, $resource);
-    }
-
-
     public function testShow()
     {
         $response = $this->get(route('categories.show', ['category' => $this->category->id]));
