@@ -23,6 +23,6 @@ class GenreResource extends JsonResource
         // }
         //$obj->$links[] = $links;
         // return $obj;
-        return parent::toArray($request) + ['categories' => CategoryResource::collection($this->categories)];
+        return parent::toArray($request) + ['categories' => CategoryResource::collection($this->whenLoaded('categories'))];
     }
 }

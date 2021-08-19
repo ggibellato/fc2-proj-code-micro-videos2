@@ -19,24 +19,32 @@ class GenreControllerTest extends TestCase
     use DatabaseMigrations, TestValidations, TestSaves, TestResources;
 
     private $genre;
+    // private $serializedFields = [
+    //     'id',
+    //     'name',
+    //     'is_active',
+    //     'created_at',
+    //     'updated_at',
+    //     'deleted_at',
+    //     "categories" => [
+    //         '*' => [
+    //             'id',
+    //             'name',
+    //             'description',
+    //             'is_active',
+    //             'created_at',
+    //             'updated_at',
+    //             'deleted_at'
+    //         ]
+    //     ]
+    // ];
     private $serializedFields = [
         'id',
         'name',
         'is_active',
         'created_at',
         'updated_at',
-        'deleted_at',
-        "categories" => [
-            '*' => [
-                'id',
-                'name',
-                'description',
-                'is_active',
-                'created_at',
-                'updated_at',
-                'deleted_at'
-            ]
-        ]
+        'deleted_at'
     ];
 
     protected function setUp(): void 

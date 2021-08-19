@@ -1,65 +1,33 @@
 import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
-import { invert } from "lodash";
 import { useSnackbar } from 'notistack';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { BadgeNo, BadgeYes } from '../../components/Badge';
 import DefaultTable, { makeActionStyles, TableColumn, MuiDataTableRefComponent } from '../../components/Table';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import useFilter from '../../hooks/useFilter';
 import { formatFromISO } from '../../util/date';
-import categoryHttp from '../../util/http/category-http';
 import genreHttp from '../../util/http/genre-http';
-import { ListResponse, Genre, Category, IsActiveMap } from '../../util/models';
-import * as yup from "../../util/vendor/yup/yup";
-
-const isActiveNames = Object.values(IsActiveMap);
+import videoHttp from '../../util/http/video-http';
+import { ListResponse, Video } from '../../util/models';
 
 const columnsDefinition: TableColumn[] = [
     {
         name: 'id',
         label: 'ID',
-        width: '37%',
+        width: '25%',
         options: {
             sort: false,
             filter: false
         }
     },
     {
-        name: "name",
-        label: "Nome",
-        width: "16%",
+        name: "title",
+        label: "Titulo",
+        width: "52%",
         options: {
             filter: false
-        }
-    },
-    {
-        name: "categories",
-        label: "Categorias",
-        width: "20%",
-        options: {
-            filterType: "multiselect",
-            filterOptions: {
-                names: []
-            },
-            customBodyRender(value, tableMeta, updateValue) {
-                return <span>{value?.map( (el:any) => (el.name)).join(",")}</span>;
-            }
-        }
-    },    
-    {
-        name: "is_active",
-        label: "Ativo?",
-        width: "4%",
-        options: {
-            filterOptions: {
-                names: ['Sim', 'Nao']
-            },
-            customBodyRender(value, tableMeta, updateValue) {
-                return value ? <BadgeYes/> : <BadgeNo/>
-            }
         }
     },
     {
@@ -85,7 +53,7 @@ const columnsDefinition: TableColumn[] = [
                     <IconButton
                         color={'secondary'}
                         component={Link}
-                        to={`/genres/${tableMeta.rowData[0]}/edit`}
+                        to={`/videos/${tableMeta.rowData[0]}/edit`}
                     >
                         <EditIcon />
                     </IconButton>
@@ -100,13 +68,11 @@ const debouncedSearchTime = 300;
 const rowsPerPage = 15;
 const rowsPerPageOptions = [15,25,50]
 
-
 const Table = () => {
 
     const snackbar = useSnackbar();
     const subscribed = useRef(true); //current:true    
-    const [data, setData] = useState<Genre[]>([]);
-    const [, setCategories] = useState<Category[]>([]);
+    const [data, setData] = useState<Video[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;    
     const {
@@ -121,82 +87,12 @@ const Table = () => {
         debounceTime: debounceTime,
         tableRef: tableRef,
         rowsPerPage: rowsPerPage,
-        rowsPerPageOptions: rowsPerPageOptions,
-        extraFilter: {
-            createValidationSchema: () => {
-                return yup.object().shape({
-                    categories: yup.mixed()
-                        .nullable()
-                        .transform(value => {
-                            return !value || value ==='' ? undefined: value.split(',');
-                        })
-                        .default(null),
-                    is_active: yup.string()
-                        .nullable()
-                        .transform(value => {
-                            return !value || !isActiveNames.includes(value)? undefined: value;
-                        })
-                        .default(null)
-
-                })
-            },
-            formatSearchParams: (debouncedState) => {
-                return debouncedState.extraFilter 
-                    ? {
-                        ...(
-                            debouncedState.extraFilter.categories && {categories: debouncedState.extraFilter.categories.join(',')}
-                        ),
-                        ...(
-                            debouncedState.extraFilter.is_active && {is_active: debouncedState.extraFilter.is_active}
-                        )
-                    } 
-                    : undefined
-            },
-            getStateFromURL: (queryParams) => {
-                return {
-                    categories: queryParams.get('categories'),
-                    is_active: queryParams.get('is_active')
-                }
-            }
-        }
+        rowsPerPageOptions: rowsPerPageOptions
     });
-    const indexColumnCategories = columns.findIndex(c => c.name === 'categories');
-    const columnCategories = columns[indexColumnCategories];
-    const categoriesFilterValue = filterState.extraFilter && filterState.extraFilter.categories;
-    (columnCategories.options as any).filterList = categoriesFilterValue ? categoriesFilterValue : [];
-    const indexColumnIsActive = columns.findIndex(c => c.name === 'is_active');
-    const columnIsActive = columns[indexColumnIsActive];
-    const isActiveFilterValue = filterState.extraFilter && filterState.extraFilter.is_active as never;
-    (columnIsActive.options as any).filterList = isActiveFilterValue ? [isActiveFilterValue] : [];
-
 
     useEffect(()=>{
         filterManager.replaceHistory();
     }, []);
-
-    useEffect(()=> {
-        let isSubscribed = true;
-        (async () => {
-            try {
-                if(isSubscribed) {
-                    const {data} = await categoryHttp.list<ListResponse<Category>>({queryParams: {all:''}});
-                    setCategories(data.data);
-                    (columnCategories.options as any).filterOptions.names = data.data.map(category => category.name);
-                }
-
-            } catch (error) {
-                console.error(error);
-                snackbar.enqueueSnackbar(
-                    'Nao foi possível carregar as informações',
-                    {variant: 'error'}
-                );
-            }
-        })();
-
-        return () => {
-            isSubscribed = false;
-        }
-    }, [])
 
     useEffect(() => {
         subscribed.current = true;
@@ -216,15 +112,13 @@ const Table = () => {
     async function getData() {
         setLoading(true);
         try {
-            const {data} = await genreHttp.list<ListResponse<Genre>>({
+            const {data} = await videoHttp.list<ListResponse<Video>>({
                 queryParams: {
                     search: filterManager.cleanSearchText(filterState.search),
                     page: filterState.pagination.page,
                     per_page: filterState.pagination.per_page,
                     sort: filterState.order.sort,
-                    dir: filterState.order.dir,
-                    ...(filterState.extraFilter && filterState.extraFilter.categories && {categories: filterState.extraFilter.categories.join(',')}),
-                    ...(filterState.extraFilter && filterState.extraFilter.is_active && {is_active: invert(IsActiveMap)[filterState.extraFilter.is_active]})
+                    dir: filterState.order.dir
                 }
             });
             if(subscribed.current) {
@@ -245,11 +139,10 @@ const Table = () => {
         }
     }
 
-
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length-1)}>
             <DefaultTable 
-                title="Listagem de gêneros"
+                title="Listagem de videos"
                 columns={columns}
                 data={data}
                 loading ={loading}

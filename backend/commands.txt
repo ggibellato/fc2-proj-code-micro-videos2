@@ -31,30 +31,12 @@ php artisan make:migration create_category_genre_table
 
 vendor/bin/phpunit
 
-vendor/bin/phpunit --filter testIfUseTraits CategoryUnitTest /var/www/backend/tests/Unit/Models/CategoryUnitTest.php
-vendor/bin/phpunit --filter testIndex BasicCrudControllerTest /var/www/backend/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
-vendor/bin/phpunit --filter testIndex CategoryControllerTest /var/www/backend/tests/Feature/Http/Controllers/Api/CategoryControllerTest.php
+vendor/bin/phpunit --filter :testSaveWithoutFile /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerCrudTest
+vendor/bin/phpunit --filter testStoreWithFile /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadsTest
+vendor/bin/phpunit --filter testUpdateWithFile /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadsTest
 
-vendor/bin/phpunit --filter testSyncCategories VideoTest /var/www/backend/tests/Feature/Models/VideoTest.php
-vendor/bin/phpunit --filter testIncrementingAttribute VideoUnitTest /var/www/tests/Unit/Models/VideoUnitTest.php
-vendor/bin/phpunit --filter testRollbackStore GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
-vendor/bin/phpunit --filter testSaveCategoryGenreRelationValidationRuleInvalid VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
-vendor/bin/phpunit --filter BasicCrudControllerTest /var/www/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest.php
-
-vendor/bin/phpunit --filter testSyncCategories GenreControllerTest /var/www/tests/Feature/Http/Controllers/Api/GenreControllerTest.php
-vendor/bin/phpunit --filter testSyncCategories VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoControllerTest.php
-
-
-vendor/bin/phpunit --filter VideoControllerUploadsTest /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadsTest.php
-vendor/bin/phpunit --filter VideoCrudTest /var/www/backend/tests/Feature/Models/Video/VideoCrudTest.php
-
-vendor/bin/phpunit --filter testInvalidationFileFields VideoControllerTest /var/www/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerTest.php
-
-
-vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Unit/Rules/GenresHasCategoriesRuleTest.php
-vendor/bin/phpunit --filter GenresHasCategoriesRuleTest /var/www/tests/Feature/Rules/GenresHasCategoriesRuleTest.php
-
-vendor/bin/phpunit --filter UploadFilesUnitTest /var/www/tests/Unit/Models/Traits/UploadFilesUnitTest.php
+vendor/bin/phpunit /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerCrudTest
+vendor/bin/phpunit /var/www/backend/tests/Feature/Http/Controllers/Api/GenreControllerTest
 
 php artisan make:test [ClassName] [--unit]
 

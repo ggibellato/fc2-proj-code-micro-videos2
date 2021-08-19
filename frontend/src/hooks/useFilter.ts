@@ -39,6 +39,7 @@ export default function useFilter(options: UseFilterOptions) {
     const [totalRecords, setTotalRecords] = useState<number>(0);
 
     filterManager.state = filterState;
+    filterManager.debouncedState = debounceFilterState;
     filterManager.dispatch = dispatch;
 
     filterManager.applyOderInColumns();
@@ -56,6 +57,7 @@ export default function useFilter(options: UseFilterOptions) {
 export class FilterManager {
     schema: any;
     state: FilterState = null as any;
+    debouncedState: FilterState = null as any;
     dispatch: Dispatch<FilterActions> = null as any;
     columns: MUIDataTableColumn[];
     rowsPerPage: number;
@@ -148,7 +150,7 @@ export class FilterManager {
         this.history.replace({
             pathname: this.history.location.pathname,
             search: "?" + new URLSearchParams(this.formatSearchParams()),
-            state: this.state
+            state: this.debouncedState
         });
     }
 
@@ -157,12 +159,12 @@ export class FilterManager {
             pathName: this.history.location.pathname,
             search: "?" + new URLSearchParams(this.formatSearchParams()),
             state: {
-                ...this.state,
-                search: this.cleanSearchText(this.state.search)
+                ...this.debouncedState,
+                search: this.cleanSearchText(this.debouncedState.search)
             }
         }
         const oldState = this.history.location.state;
-        const nextState = this.state;
+        const nextState = this.debouncedState;
         if(isEqual(oldState, nextState)) {
             return;
         }
@@ -193,16 +195,16 @@ export class FilterManager {
         const search = this.cleanSearchText(this.state.search);
         return  {
             ...(search && search !== '' && {search: search}),
-            ...(this.state.pagination.page !== 1 && {page:this.state.pagination.page}),
-            ...(this.state.pagination.per_page !== 15 && {per_page:this.state.pagination.per_page}),
+            ...(this.state.pagination.page !== 1 && {page:this.debouncedState.pagination.page}),
+            ...(this.state.pagination.per_page !== 15 && {per_page:this.debouncedState.pagination.per_page}),
             ...(
                 this.state.order.sort && {
-                    sort: this.state.order.sort,
-                    dir: this.state.order.dir
+                    sort: this.debouncedState.order.sort,
+                    dir: this.debouncedState.order.dir
                 }
             ),
             ...(
-                this.extraFilter && this.extraFilter.formatSearchParams(this.state)
+                this.extraFilter && this.extraFilter.formatSearchParams(this.debouncedState)
             )
         };
     }
@@ -217,8 +219,9 @@ export class FilterManager {
                     .transform(value => isNaN(value) || parseInt(value) < 1 ? undefined : value)
                     .default(1),
                 per_page: yup.number()
-                    .oneOf(this.rowsPerPageOptions)
-                    .transform( value => isNaN(value) ? undefined : value)
+                    .transform( value => 
+                        isNaN(value) || !this.rowsPerPageOptions.includes(parseInt(value)) ? undefined : value
+                    )
                     .default(this.rowsPerPage)
             }),
             order: yup.object().shape({

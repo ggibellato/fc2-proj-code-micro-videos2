@@ -29,7 +29,8 @@ class VideoResource extends JsonResource
                 'banner_file_url' => $this->banner_file_url,
                 'trailer_file_url' => $this->trailer_file_url,
                 'categories' => CategoryResource::collection($this->categories),
-                'genres' => GenreResource::collection($this->genres) 
+                'genres' => GenreResource::collection($this->genres),
+                'cast_members' => CastMemberResource::collection($this->castMembers),
             ];
     }
 }
