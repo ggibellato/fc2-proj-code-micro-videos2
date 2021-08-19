@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use App\Models\Video;
 use App\Models\Traits\UploadFiles;
 use App\Models\Traits\Uuid;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Tests\TestCase;
 
@@ -24,7 +25,8 @@ class VideoUnitTest extends TestCase
         $traits = [
             SoftDeletes::class,
             Uuid::class,
-            UploadFiles::class
+            UploadFiles::class,
+            Filterable::class
         ];
         $videoTraits = array_keys(class_uses(Video::class));
         $this->assertEquals($traits, $videoTraits);
@@ -53,7 +55,7 @@ class VideoUnitTest extends TestCase
 
     public function testCastAttribute()
     {
-        $casts = [        
+        $casts = [
             'opened' => 'boolean',
             'year_launched' => 'integer',
             'duration' => 'integer',

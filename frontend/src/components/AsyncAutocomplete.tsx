@@ -65,6 +65,12 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
         )
     };
 
+    useEffect(()=> {
+        if(!open && !freeSolo) {
+            setOptions([]);
+        }
+    }, [open])
+
     useEffect(() => {
         if(!open || searchText === "" && freeSolo){
             return;
