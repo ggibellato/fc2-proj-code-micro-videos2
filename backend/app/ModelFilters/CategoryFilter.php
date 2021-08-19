@@ -10,4 +10,11 @@ class CategoryFilter extends DefaultModelFilter
     {
         $this->where('name', 'LIKE', "%$search%");
     }
+
+    public function is_active($isActive)
+    {
+        dump($isActive);
+        $isActive_ = (int)$isActive;
+        $this->where('is_active', $isActive_ != 0);
+    }
 }

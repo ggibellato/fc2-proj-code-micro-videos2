@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api\VideoController;
 
 use App\Http\Resources\VideoResource;
+use App\Models\CastMember;
 use App\Models\Category;
 use App\Models\Genre;
 use App\Models\Video;
@@ -42,7 +43,8 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
             'rating' => '',
             'duration' => '',
             'categories_id' => '',
-            'genres_id' => ''
+            'genres_id' => '',
+            'cast_members_id' => ''
         ];
         $this->assertInvalidationInStoreAction($data, 'required');
         $this->assertInvalidationInUpdateAction($data, 'required');
@@ -132,10 +134,33 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
         $this->assertInvalidationInUpdateAction($data, 'exists');
     }
 
+    public function testInvalidationCastMemberIdField() {
+        $data = [
+            'cast_members_id' => 'a'
+        ];
+        $this->assertInvalidationInStoreAction($data, 'array');
+        $this->assertInvalidationInUpdateAction($data, 'array');
+
+        $data = [
+            'cast_members_id' => [100]
+        ];
+        $this->assertInvalidationInStoreAction($data, 'exists');
+        $this->assertInvalidationInUpdateAction($data, 'exists');
+
+        $castMember = factory(CastMember::class)->create();
+        $castMember->delete();
+        $data = [
+            'cast_members_id' => [$castMember->id]
+        ];
+        $this->assertInvalidationInStoreAction($data, 'exists');
+        $this->assertInvalidationInUpdateAction($data, 'exists');
+    }
+
     public function testInvalidationRelationManyToMany() {
         $fields = [
             'categories_id',
-            'genres_id'
+            'genres_id',
+            'cast_members_id'
         ];
         foreach ($fields as $field) {
             $data = [
@@ -153,7 +178,7 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
     }
 
     public function testSaveWithoutFile() {
-        $testData = Arr::except($this->sendData, ['categories_id', 'genres_id']);
+        $testData = Arr::except($this->sendData, ['categories_id', 'genres_id', 'cast_members_id']);
         $data = [
             [
                 'send_data' => $this->sendData ,                    
@@ -173,7 +198,7 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
             ]
         ];
 
-        $relations = ["categories" => [$this->category->id], "genres" => [$this->genre->id]];
+        $relations = ["categories" => [$this->category->id], "genres" => [$this->genre->id], "castMembers" => [$this->castMember->id]];
 
         foreach($data as $key => $value) {
             /** @var TestResponse $response */
@@ -191,6 +216,10 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
                 $response->json('data.id'),
                 $value['send_data']['genres_id'][0]
             );
+            $this->assertHasCastMember(
+                $response->json('data.id'),
+                $value['send_data']['cast_members_id'][0]
+            );
             $this->validateResource($response);    
             $this->assertIfFilesUrlExists($video, $response);
             
@@ -206,6 +235,10 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
             $this->assertHasGenre(
                 $response->json('data.id'),
                 $value['send_data']['genres_id'][0]
+            );
+            $this->assertHasCastMember(
+                $response->json('data.id'),
+                $value['send_data']['cast_members_id'][0]
             );
             $this->validateResource($response);  
             $this->assertIfFilesUrlExists($this->video, $response);
@@ -226,8 +259,15 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
         ]);
     }
 
+    private function assertHasCastMember($videoId, $castMember) {
+        $this->assertDatabaseHas('cast_member_video', [
+            'video_id' => $videoId,
+            'cast_member_id' => $castMember
+        ]);
+    }
+
     public function testSaveCategoryGenreRelationValidationRuleInvalid(){
-        $sendData = Arr::except($this->sendData, ['categories_id', 'genres_id']);
+        $sendData = Arr::except($this->sendData, ['categories_id', 'genres_id', 'cast_members_id']);
 
         $category = factory(Category::class)->create();
         $genre = factory(Genre::class)->create();
@@ -236,18 +276,22 @@ class VideoControllerCrudTest extends BasicVideoControllerTestCase
         $category1 = factory(Category::class)->create();
         $genre1 = factory(Genre::class)->create();
         $genre1->categories()->attach($category1);
+        
+        $castMember = factory(CastMember::class)->create();
 
         $data = [
             [
                 'send_data' => $sendData + [
                     'categories_id' => [$category->id, $category1->id], 
-                    'genres_id' => [$genre->id]
+                    'genres_id' => [$genre->id],
+                    'cast_members_id' => [$castMember->id]
                 ]
             ],
             [
                 'send_data' => $sendData + [
                     'categories_id' => [$category->id], 
-                    'genres_id' => [$genre->id, $genre1->id]
+                    'genres_id' => [$genre->id, $genre1->id],
+                    'cast_members_id' => [$castMember->id]
                 ]
             ]
         ];
