@@ -21,7 +21,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: 'id',
         label: 'ID',
-        width: '37%',
+        width: '25%',
         options: {
             sort: false,
             filter: false
@@ -30,7 +30,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "name",
         label: "Nome",
-        width: "16%",
+        width: "25%",
         options: {
             filter: false
         }
@@ -45,7 +45,7 @@ const columnsDefinition: TableColumn[] = [
                 names: []
             },
             customBodyRender(value, tableMeta, updateValue) {
-                return <span>{value?.map( (el:any) => (el.name)).join(",")}</span>;
+                return <span>{value?.map( (el:any) => (el.name)).join(", ")}</span>;
             }
         }
     },    
@@ -76,7 +76,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "actions",
         label: "Acoes",
-        width: "13%",
+        width: "8%",
         options: {
             sort: false,
             filter: false,

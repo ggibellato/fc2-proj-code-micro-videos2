@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\VideoResource;
 use App\Models\Video;
 use App\Rules\GenresHasCategoriesRule;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class VideoController extends BasicCrudController
@@ -39,6 +41,7 @@ class VideoController extends BasicCrudController
         $obj = $this->model()::create($validatedData);
         $obj->refresh();
         $resourceClass = $this->resource();
+        $obj->load($this->queryBuilder()->getEagerLoads());
         return new $resourceClass($obj);
     }
 
@@ -56,6 +59,12 @@ class VideoController extends BasicCrudController
         $categoriesId = $request->get('categories_id');
         $categoriesId = is_array($categoriesId) ? $categoriesId : [];
         $this->rules['genres_id'][] = new GenresHasCategoriesRule($categoriesId);
+    }
+
+    public function addFiles(Request $request, $id) {
+        dump($request);
+        dump($id);
+        return;
     }
 
     protected function model() {
@@ -76,5 +85,17 @@ class VideoController extends BasicCrudController
 
     protected function resource() {
         return VideoResource::class;
+    }
+
+    protected function queryBuilder(): Builder
+    {
+        $action = \Route::getCurrentRoute()->getAction()['uses'];
+        return parent::queryBuilder()->with([
+            strpos($action, 'index') != false
+                ? 'genres'
+                : 'genres.categories',
+            'categories',
+            'castMembers'
+        ]);
     }
 }

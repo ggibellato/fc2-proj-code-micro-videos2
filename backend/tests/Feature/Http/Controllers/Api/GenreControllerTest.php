@@ -47,7 +47,7 @@ class GenreControllerTest extends TestCase
         'deleted_at'
     ];
 
-    protected function setUp(): void 
+    protected function setUp(): void
     {
         parent::setUp();
         $this->genre = factory(Genre::class)->create();
@@ -81,7 +81,6 @@ class GenreControllerTest extends TestCase
         $category = factory(Category::class)->create();
         $this->genre->categories()->attach($category);
         $response = $this->get(route('genres.show', ['genre' => $this->genre->id]));
-
         $response
             ->assertStatus(200)
             ->assertJsonStructure([
@@ -147,7 +146,7 @@ class GenreControllerTest extends TestCase
 
         foreach($data as $key => $value) {
             /** @var TestResponse $response */
-            $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]); 
+            $response = $this->assertStore($value['send_data'], $value['test_data'] + ['deleted_at' => null]);
             $response->assertJsonStructure([
                 'data' => $this->serializedFields
             ]);
@@ -155,8 +154,8 @@ class GenreControllerTest extends TestCase
             $this->assertRelations($genre, $relations);
             $this->validateResource($response);
 
-            
-            $response = $this->assertUpdate($value['send_data'], $value['test_data'] + ['deleted_at' => null]);            
+
+            $response = $this->assertUpdate($value['send_data'], $value['test_data'] + ['deleted_at' => null]);
             $response->assertJsonStructure([
                 'data' => $this->serializedFields
             ]);
@@ -174,7 +173,7 @@ class GenreControllerTest extends TestCase
 
     public function testSyncCategories() {
         $categoriesId = factory(Category::class, 3)->create()->pluck('id')->toArray();
-        
+
         $sendData = [
             'name' => 'test',
             'categories_id' => [$categoriesId[0]]
@@ -185,7 +184,7 @@ class GenreControllerTest extends TestCase
             'category_id' => $categoriesId[0],
             'genre_id' => $id
         ]);
-        
+
         $sendData = [
             'name' => 'test',
             'categories_id' => [$categoriesId[1], $categoriesId[2]]
@@ -205,7 +204,7 @@ class GenreControllerTest extends TestCase
         ]);
     }
 
-    public function testRollbackStore() 
+    public function testRollbackStore()
     {
         /** @var \Mockery\MockInterface|GenreController */
         $controller = \Mockery::mock(GenreController::class);
@@ -222,7 +221,7 @@ class GenreControllerTest extends TestCase
             ->shouldReceive('ruleStore')
             ->withAnyArgs()
             ->andReturn([]);
-        
+
         $controller->shouldReceive('handleRelations')
             ->once()
             ->andThrow(new TestException());
@@ -243,7 +242,7 @@ class GenreControllerTest extends TestCase
         $this->assertTrue($hasError);
     }
 
-    public function testRollbackUpdate() 
+    public function testRollbackUpdate()
     {
         /** @var \Mockery\MockInterface|GenreController */
         $controller = \Mockery::mock(GenreController::class);
@@ -267,7 +266,7 @@ class GenreControllerTest extends TestCase
             ->shouldReceive('rulesUpdate')
             ->withAnyArgs()
             ->andReturn([]);
-        
+
         $controller->shouldReceive('handleRelations')
             ->once()
             ->andThrow(new TestException());

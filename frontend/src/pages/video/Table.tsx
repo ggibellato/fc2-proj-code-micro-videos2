@@ -16,7 +16,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: 'id',
         label: 'ID',
-        width: '25%',
+        width: '37%',
         options: {
             sort: false,
             filter: false
@@ -25,11 +25,39 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "title",
         label: "Titulo",
-        width: "52%",
+        width: "20%",
         options: {
             filter: false
         }
     },
+    {
+        name: "genres",
+        label: "Generos",
+        width: "15%",
+        options: {
+            filterType: "multiselect",
+            filterOptions: {
+                names: []
+            },
+            customBodyRender(value, tableMeta, updateValue) {
+                return <span>{value?.map( (el:any) => (el.name)).join(",")}</span>;
+            }
+        }
+    },    
+    {
+        name: "categories",
+        label: "Categorias",
+        width: "15%",
+        options: {
+            filterType: "multiselect",
+            filterOptions: {
+                names: []
+            },
+            customBodyRender(value, tableMeta, updateValue) {
+                return <span>{value?.map( (el:any) => (el.name)).join(", ")}</span>;
+            }
+        }
+    },    
     {
         name: "created_at",
         label: "Criado em",
@@ -44,7 +72,7 @@ const columnsDefinition: TableColumn[] = [
     {
         name: "actions",
         label: "Acoes",
-        width: "13%",
+        width: "3%",
         options: {
             sort: false,
             filter: false,
