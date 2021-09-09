@@ -52,10 +52,10 @@ export default function Form() {
                 if(isSubscribed) {
                     setCategories(categoriesResponse.data.data);
                     if(id) {
-                        setGenre(genreResponse.data.data);
+                        setGenre(genreResponse.data);
                         reset({
-                            ...genreResponse.data.data,
-                            categories_id: genreResponse.data.data.categories.map((category:any) => category.id)
+                            ...genreResponse.data,
+                            categories_id: genreResponse.data.categories.map((category:any) => category.id)
                         });
                     }
                 }

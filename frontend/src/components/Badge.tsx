@@ -1,7 +1,8 @@
-import { Chip, createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import { Chip, MuiThemeProvider } from '@material-ui/core';
+import { createTheme } from '@material-ui/core/styles';
 import theme from "../theme";
 
-const localTheme = createMuiTheme({
+const localTheme = createTheme({
     palette: {
         primary: theme.palette.success,
         secondary: theme.palette.error,

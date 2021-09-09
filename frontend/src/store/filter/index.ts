@@ -94,15 +94,6 @@ function setReset(state = INITIAL_STATE, action: Typings.SetResetAction) : Typin
 }
 
 function updateExtraFilter(state= INITIAL_STATE, action: Typings.UpdateExtraFilterAction) {
-
-    console.log({
-        ...state,
-        extraFilter: {
-            ...state.extraFilter,
-            ...action.payload
-        }
-    });
-
     return {
         ...state,
         extraFilter: {

@@ -51,8 +51,8 @@ export default function Form() {
             try {
                 const {data} = await castMemberHttp.get(id);
                 if(isSubscribed) {
-                    setCastMember(data.data);
-                    reset(data.data);
+                    setCastMember(data);
+                    reset(data);
                 }
             } catch(error) {
                 console.error(error);

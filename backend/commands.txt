@@ -35,8 +35,12 @@ vendor/bin/phpunit --filter :testSaveWithoutFile /var/www/backend/tests/Feature/
 vendor/bin/phpunit --filter testStoreWithFile /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadsTest
 vendor/bin/phpunit --filter testUpdateWithFile /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerUploadsTest
 
+vendor/bin/phpunit --filter testShow /var/www/backend/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest
+vendor/bin/phpunit /var/www/backend/tests/Feature/Http/Controllers/Api/BasicCrudControllerTest
+vendor/bin/phpunit --filter testSaveWithoutFile /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerCrudTest.php
+
 vendor/bin/phpunit /var/www/backend/tests/Feature/Http/Controllers/Api/VideoController/VideoControllerCrudTest
-vendor/bin/phpunit /var/www/backend/tests/Feature/Http/Controllers/Api/GenreControllerTest
+vendor/bin/phpunit /var/www/backend/tests/Feature/Http/Controllers/Api/CastMemberControllerTest
 
 php artisan make:test [ClassName] [--unit]
 

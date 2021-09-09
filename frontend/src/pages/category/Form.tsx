@@ -50,8 +50,8 @@ export default function Form() {
             try {
                 const {data} = await categoryHttp.get(id);
                 if(isSubscribed) {
-                    setCategory(data.data);
-                    reset(data.data);
+                    setCategory(data);
+                    reset(data);
                 }
             } catch(error) {
                 console.error(error);

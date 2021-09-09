@@ -35,7 +35,7 @@ export const RatingField: React.FC<RatingFieldProps> = (props) => {
                     onChange={(e) => {
                         setValue(e.target.value);
                     }}
-                    value={value}
+                    value={value || ''}
                     row
                 >
                 {

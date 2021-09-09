@@ -3,7 +3,9 @@ import {setLocale} from 'yup';
 setLocale({
     mixed: {
         // eslint-disable-next-line
-        required: '${path} é requerido'
+        required: '${path} é requerido',
+        // eslint-disable-next-line
+        notType: '${path} é inválido'
     },
     string: {
         // eslint-disable-next-line

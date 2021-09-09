@@ -1,26 +1,26 @@
-import { Card, CardContent, Checkbox, FormControlLabel, Grid, makeStyles, 
+import { Card, CardContent, Checkbox, FormControlLabel, FormHelperText, Grid, makeStyles, 
     TextField, Theme, Typography, 
     useMediaQuery, useTheme } from '@material-ui/core'
+import { useSnackbar} from 'notistack';    
 import { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
 
 import RatingField from './RatingField';
 import UploadField from './UploadField';
-import genreHttp from '../../../util/http/genre-http';
-import categoryHttp from '../../../util/http/category-http';
 import videoHttp from '../../../util/http/video-http';
 import * as yup from "../../../util/vendor/yup/yup";
 import { useYupValidationResolver } from '../../../util/yup';
-import { useSnackbar} from 'notistack';
-import { Video, Category, Genre, ListResponse, VideoFileFieldsMap } from '../../../util/models';
+import { CastMember, Category, Genre, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import { DefaultForm } from '../../../components/DefaultForm';
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
+import GenreField from './GenreField';
+import CategoryField from './CategoryField';
+import CastMemberField from './CastMemberField';
 
 const useStyles = makeStyles( (theme: Theme) => ({
     cardUpload: {
-        bordRadius: "4px",
+        boardRadius: "4px",
         backgroundColor:"#f5f5f5",
         margin: theme.spacing(2, 0)
     }
@@ -36,15 +36,38 @@ const validationSchema = yup.object().shape({
         .label('Sinopse')
         .required(),
     year_launched: yup.number()
-        .label('Ano de lancamento')
+        .label('Ano de lançamento')
         .required()
         .min(1),
     duration: yup.number()
-        .label('Duracao')
+        .label('Duração')
+        .required()
+        .min(1),
+    cast_members: yup.array()
+        .label('Membro do elenco')
+        .required()
+        .min(1),
+    genres: yup.array()
+        .label('Gêneros')
+        .required()
+        .min(1)
+        .test({
+            message: 'Cada gênero escolhido precisa ter pelo menos uma categoria selecionada',
+            test(value) {
+                var genres = value as Genre[];
+                return genres.every(
+                    g => g.categories.filter(
+                        cat => this.parent.categories.map((c: Category) => c.id).includes(cat.id)
+                    ).length !== 0
+                );
+            }
+        }),
+    categories: yup.array()
+        .label('Categorias')
         .required()
         .min(1),
     rating: yup.string()
-        .label('Classificacao')
+        .label('Classificação')
         .required()
 });
 
@@ -66,10 +89,16 @@ export default function Form() {
             banner_file: string,
             trailer_file: string,            
             video_file: string,            
+            cast_members: CastMember[],
+            genres: Genre[],
+            categories: Category[]
         }>({
             resolver,
             defaultValues: {
-                opened: false
+                opened: false,
+                cast_members: [],
+                genres: [],
+                categories: []
         }
     });
     const snackbar = useSnackbar()
@@ -90,8 +119,8 @@ export default function Form() {
             try {
                 const {data} = await videoHttp.get(id);
                 if(isSubscribed) {
-                    setVideo(data.data);
-                    reset(data.data);
+                    setVideo(data);
+                    reset(data);
                 }
             } catch (error) {
                 snackbar.enqueueSnackbar(
@@ -109,19 +138,25 @@ export default function Form() {
     }, [id, snackbar, reset]);
 
     useEffect(() => {
-        ['rating', 'opened', ...fileFields].forEach(field => register({name: field as never}));
+        ['rating', 'opened', 'genres', 'categories', 'cast_members', ...fileFields].forEach(field => register({name: field as never}));
     }, [register]);
 
     async function onSubmit(formData: any, event: any) {
         setLoading(true);
         try {
+            var {genres, categories, cast_members, banner_file, thumb_file, trailer_file, video_file, ...dataToSave} = formData;
+            dataToSave.genres_id = genres.map((g:any) => g.id);
+            dataToSave.categories_id = categories.map((c:any) => c.id);
+            dataToSave.cast_members_id = cast_members.map((c:any) => c.id);
+
             const http = !video
-                ? videoHttp.create(formData)
-                : videoHttp.update(video.id, formData);
+                ? videoHttp.create(dataToSave)
+                : videoHttp.update(video.id, dataToSave);
             const {data} = await http;
             snackbar.enqueueSnackbar('Video salvo com sucesso', {
                 variant: 'success'
             });
+
             setTimeout( () => {
                 event 
                 ? (
@@ -142,15 +177,6 @@ export default function Form() {
         }
     }
     
-    const fetchOptions = (searchText: string) => genreHttp.list<ListResponse<Genre>>({
-        queryParams: {
-            search: searchText, 
-            all: ""
-        }
-    }).then(({data}) => {
-        return data.data;
-    })
-
     return (
         <DefaultForm GridItemProps={{xs: 12}}  onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={5}>
@@ -184,7 +210,7 @@ export default function Form() {
                         <Grid item xs={6}>
                             <TextField
                                 name="year_launched"
-                                label="Ano de lancamento"
+                                label="Ano de lançamento"
                                 type="number"
                                 margin="normal"
                                 fullWidth
@@ -199,7 +225,7 @@ export default function Form() {
                         <Grid item xs={6}>
                             <TextField
                                 name="duration"
-                                label="Duracao"
+                                label="Duração"
                                 type="number"
                                 margin="normal"
                                 fullWidth
@@ -212,18 +238,46 @@ export default function Form() {
                             />
                         </Grid>
                     </Grid>
-                    Elenco
+                    <Grid container>
+                        <Grid item xs={12} md={6}>
+                            <CastMemberField 
+                                cast_members={watch('cast_members')} 
+                                setCastMembers={(value) => setValue('cast_members', value, {shouldValidate: true})}
+                                error={errors.cast_members}
+                                disabled={loading}
+                            />
+                        </Grid>
+                    </Grid>                        
                     <br/>
-                    <AsyncAutocomplete 
-                        fetchOptions={fetchOptions}
-                        AutocompleteProps={{
-                            freeSolo: true,
-                            getOptionLabel: option => option.name
-                        }}
-                        TextFieldProps={{
-                            label: "Generos"
-                        }}
-                    />
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <GenreField 
+                                genres={watch('genres')} 
+                                setGenres={(value) => setValue('genres', value, {shouldValidate: true})}
+                                categories={watch('categories')} 
+                                setCategories={(value) => setValue('categories', value, {shouldValidate: true})}
+                                error={errors.genres}
+                                disabled={loading}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <CategoryField 
+                                categories={watch('categories')} 
+                                setCategories={(value) => setValue('categories', value, {shouldValidate: true})}
+                                genres={watch('genres')}
+                                error={errors.categories}
+                                disabled={loading}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormHelperText>
+                                Escolha os gêneros do video
+                            </FormHelperText>
+                            <FormHelperText>
+                                Escolha pelo menso uma categoria de cada gênero
+                            </FormHelperText>
+                        </Grid>
+                    </Grid>
                 </Grid>
                 <Grid item xs={12} md={6}>
                     <RatingField 
@@ -285,7 +339,7 @@ export default function Form() {
                         }
                         label = {
                             <Typography color="primary" variant={"subtitle2"}>
-                                Quero que este conteudo apareca na secao lancamentos
+                                Quero que este conteúdo apareça na seção lançamentos
                             </Typography>
                         }
                         labelPlacement="end"
