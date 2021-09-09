@@ -65,7 +65,12 @@ abstract class BasicCrudController extends Controller
         // $obj = $this->model()::findOrFail($id);
         // $resource = $this->resource();
         // return new $resource($obj);
-        return $this->findOrFail($id);
+
+        //return $this->findOrFail($id);
+
+        $obj = $this->findOrFail($id);
+        $resource = $this->resource();
+        return new $resource($obj);
     }
 
     public function update(Request $request, $id)
