@@ -1,28 +1,39 @@
 import { Card, CardContent, Checkbox, FormControlLabel, FormHelperText, Grid, makeStyles, 
     TextField, Theme, Typography, 
     useMediaQuery, useTheme } from '@material-ui/core'
+import { zipObject } from 'lodash';    
 import { useSnackbar} from 'notistack';    
-import { useState, useEffect } from 'react';
+import { useContext, useState, useEffect, MutableRefObject, useRef, createRef } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
 
 import RatingField from './RatingField';
 import UploadField from './UploadField';
+import { InputFileComponent } from '../../../components/InputFile';
 import videoHttp from '../../../util/http/video-http';
 import * as yup from "../../../util/vendor/yup/yup";
 import { useYupValidationResolver } from '../../../util/yup';
 import { CastMember, Category, Genre, Video, VideoFileFieldsMap } from '../../../util/models';
 import SubmitActions from '../../../components/SubmitActions';
 import { DefaultForm } from '../../../components/DefaultForm';
-import GenreField from './GenreField';
-import CategoryField from './CategoryField';
-import CastMemberField from './CastMemberField';
+import GenreField, {GenreFieldComponent} from './GenreField';
+import CategoryField, {CategoryFieldComponent} from './CategoryField';
+import CastMemberField, {CastMemberFieldComponent} from './CastMemberField';
+import useSnackbarFormError from '../../../hooks/useSnackbarFormError';
+import LoadingContext from '../../../components/loading/LoadingContext';
 
 const useStyles = makeStyles( (theme: Theme) => ({
     cardUpload: {
         boardRadius: "4px",
         backgroundColor:"#f5f5f5",
         margin: theme.spacing(2, 0)
+    },
+    cardOpened: {
+        boardRadius: "4px",
+        backgroundColor:"#f5f5f5",
+    },
+    cardContentOpened: {
+        paddingBottom: theme.spacing(2) + 'px !important'
     }
 }));
 
@@ -77,14 +88,14 @@ export default function Form() {
     const classes = useStyles();
     const resolver = useYupValidationResolver(validationSchema);
 
-    const { register, handleSubmit, getValues, setValue, errors, reset, watch, trigger } = 
+    const { register, handleSubmit, getValues, setValue, errors, reset, watch, trigger, formState } = 
         useForm<{
             title: string, 
             description: string, 
             year_launched:number, 
             duration: number,
             opened: boolean,
-            rating: string,
+            rating: any,
             thumb_file: string,
             banner_file: string,
             trailer_file: string,            
@@ -95,6 +106,7 @@ export default function Form() {
         }>({
             resolver,
             defaultValues: {
+                rating: null,
                 opened: false,
                 cast_members: [],
                 genres: [],
@@ -105,30 +117,34 @@ export default function Form() {
     const history = useHistory();
     const {id} = useParams<any>();
     const [video, setVideo] = useState<Video | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
     const theme = useTheme();
     const isGreaterMd = useMediaQuery(theme.breakpoints.up('md'));
+    const castMemberRef = useRef() as MutableRefObject<CastMemberFieldComponent>;
+    const genreRef = useRef() as MutableRefObject<GenreFieldComponent>;
+    const categoryRef = useRef() as MutableRefObject<CategoryFieldComponent>;
+    const uploadsRef = useRef(
+        zipObject(fileFields, fileFields.map(()=> createRef()))
+    ) as MutableRefObject<{[key:string]: MutableRefObject<InputFileComponent>}>;
 
+    useSnackbarFormError(formState.submitCount, errors);
     useEffect(() => {
         if(!id) { 
             return;
         }
         let isSubscribed = true;
         (async () => {
-            setLoading(true);
             try {
                 const {data} = await videoHttp.get(id);
                 if(isSubscribed) {
-                    setVideo(data);
-                    reset(data);
+                    setVideo(data.data);
+                    reset(data.data);
                 }
             } catch (error) {
                 snackbar.enqueueSnackbar(
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
                 );
-            } finally {
-                setLoading(false);
             }
         })();
 
@@ -142,7 +158,6 @@ export default function Form() {
     }, [register]);
 
     async function onSubmit(formData: any, event: any) {
-        setLoading(true);
         try {
             var {genres, categories, cast_members, banner_file, thumb_file, trailer_file, video_file, ...dataToSave} = formData;
             dataToSave.genres_id = genres.map((g:any) => g.id);
@@ -151,12 +166,12 @@ export default function Form() {
 
             const http = !video
                 ? videoHttp.create(dataToSave)
-                : videoHttp.update(video.id, dataToSave);
+                : videoHttp.update(video.id, {...dataToSave, _method: 'PUT'}, {http: {usePost: true}});
             const {data} = await http;
             snackbar.enqueueSnackbar('Video salvo com sucesso', {
                 variant: 'success'
             });
-
+            id && resetForm(video);
             setTimeout( () => {
                 event 
                 ? (
@@ -172,11 +187,19 @@ export default function Form() {
             snackbar.enqueueSnackbar('Nao foi possível salvar o video', {
                 variant: 'error'
             });
-        } finally {
-            setLoading(false)            
         }
     }
     
+    function resetForm(data: any) {
+        Object.keys(uploadsRef.current).forEach(
+            field => uploadsRef.current[field].current.clear()
+        );
+        castMemberRef.current.clear();
+        genreRef.current.clear();
+        categoryRef.current.clear();
+        reset(data);
+    }
+
     return (
         <DefaultForm GridItemProps={{xs: 12}}  onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={5}>
@@ -238,20 +261,17 @@ export default function Form() {
                             />
                         </Grid>
                     </Grid>
-                    <Grid container>
-                        <Grid item xs={12} md={6}>
-                            <CastMemberField 
-                                cast_members={watch('cast_members')} 
-                                setCastMembers={(value) => setValue('cast_members', value, {shouldValidate: true})}
-                                error={errors.cast_members}
-                                disabled={loading}
-                            />
-                        </Grid>
-                    </Grid>                        
-                    <br/>
+                    <CastMemberField 
+                        ref={castMemberRef}
+                        cast_members={watch('cast_members')} 
+                        setCastMembers={(value) => setValue('cast_members', value, {shouldValidate: true})}
+                        error={errors.cast_members}
+                        disabled={loading}
+                    />
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
                             <GenreField 
+                                ref={genreRef}
                                 genres={watch('genres')} 
                                 setGenres={(value) => setValue('genres', value, {shouldValidate: true})}
                                 categories={watch('categories')} 
@@ -262,6 +282,7 @@ export default function Form() {
                         </Grid>
                         <Grid item xs={12} md={6}>
                             <CategoryField 
+                                ref={categoryRef}
                                 categories={watch('categories')} 
                                 setCategories={(value) => setValue('categories', value, {shouldValidate: true})}
                                 genres={watch('genres')}
@@ -296,11 +317,13 @@ export default function Form() {
                                 Imagens
                             </Typography>
                             <UploadField 
+                                ref={uploadsRef.current['thumb_file']}
                                 accept={'image/*'}
                                 label={'Thumb'}
                                 setValue={(value: string) => setValue('thumb_file', value)}
                             />
                             <UploadField 
+                                ref={uploadsRef.current['banner_file']}
                                 accept={'image/*'}
                                 label={'Banner'}
                                 setValue={(value: string) => setValue('banner_file', value)}
@@ -313,37 +336,42 @@ export default function Form() {
                                 Videos
                             </Typography>
                             <UploadField 
+                                ref={uploadsRef.current['trailer_file']}
                                 accept={'video/mp4'}
                                 label={'Trailer'}
                                 setValue={(value: string) => setValue('trailer_file', value)}
                             />
                             <UploadField 
+                                ref={uploadsRef.current['video_file']}
                                 accept={'video/mp4'}
                                 label={'Principal'}
                                 setValue={(value: string) => setValue('video_file', value)}
                             />
                         </CardContent>
                     </Card>
-                    <br/>
-                    <FormControlLabel
-                        control = {
-                            <Checkbox
-                                name='opened'
-                                color={'primary'}
-                                onChange={
-                                    () => setValue('opened', !getValues()['opened'])
-                                }
-                                checked={watch('opened')}
-                                disabled={loading}
-                            />    
-                        }
-                        label = {
-                            <Typography color="primary" variant={"subtitle2"}>
-                                Quero que este conteúdo apareça na seção lançamentos
-                            </Typography>
-                        }
-                        labelPlacement="end"
-                    />
+                    <Card className={classes.cardOpened}>
+                        <CardContent className={classes.cardContentOpened}>
+                            <FormControlLabel
+                            control = {
+                                <Checkbox
+                                    name='opened'
+                                    color={'primary'}
+                                    onChange={
+                                        () => setValue('opened', !getValues()['opened'])
+                                    }
+                                    checked={watch('opened')}
+                                    disabled={loading}
+                                />    
+                            }
+                            label = {
+                                <Typography color="primary" variant={"subtitle2"}>
+                                    Quero que este conteúdo apareça na seção lançamentos
+                                </Typography>
+                            }
+                            labelPlacement="end"
+                        />
+                        </CardContent>
+                    </Card>
                 </Grid>
             </Grid>
             <SubmitActions 

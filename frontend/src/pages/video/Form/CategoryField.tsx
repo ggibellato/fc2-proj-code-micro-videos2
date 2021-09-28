@@ -1,6 +1,6 @@
 import { FormControl, FormControlProps, FormHelperText, makeStyles, Theme, Typography } from '@material-ui/core';
-import * as React from 'react'
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
+import React, {MutableRefObject, RefAttributes, useImperativeHandle, useRef} from 'react'
+import AsyncAutocomplete, {AsyncAutocompleteComponent} from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelectedItem';
 import useCollectionManager from '../../../hooks/useCollectionManager';
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     }
 }));
 
-interface CategoryFieldProps {
+interface CategoryFieldProps extends RefAttributes<CategoryFieldComponent> {
     categories: Category[],
     setCategories: (categories:Category[]) => void,
     genres: Genre[],
@@ -26,12 +26,17 @@ interface CategoryFieldProps {
     FormControlProps?: FormControlProps;
 }
 
-const CategoryField: React.FC<CategoryFieldProps> = (props) => {
+export interface CategoryFieldComponent {
+    clear: () => void
+}
+
+const CategoryField = React.forwardRef<CategoryFieldComponent, CategoryFieldProps>((props, ref) => {
 
     const {categories, setCategories, genres, error, disabled} = props;
     const classes = useStyles();
     const autoCompleteHttp = useHttpHandle();
     const {addItem, removeItem} = useCollectionManager(categories, setCategories);
+    const autoCompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
 
     function fetchOptions(searchText: string) {
         return autoCompleteHttp(
@@ -44,9 +49,14 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
         ).then( data => data.data).catch(error => console.log(error));
     } 
 
+    useImperativeHandle(ref, () => ({
+        clear: () => autoCompleteRef.current.clear()        
+    }));
+
     return (
         <>
             <AsyncAutocomplete 
+                ref={autoCompleteRef}
                 fetchOptions={fetchOptions}
                 AutocompleteProps={{
                     //autoSelect: true,
@@ -89,6 +99,6 @@ const CategoryField: React.FC<CategoryFieldProps> = (props) => {
             </FormControl>
         </>
     )   
-}
+});
 
 export default CategoryField

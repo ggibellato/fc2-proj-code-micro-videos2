@@ -1,19 +1,23 @@
 import {CircularProgress, TextField} from "@material-ui/core";
 import {TextFieldProps} from "@material-ui/core/TextField";
 import {Autocomplete, AutocompleteProps} from "@material-ui/lab";
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useImperativeHandle, RefAttributes} from 'react'
 import { useDebounce } from 'use-debounce';
 
-interface AsyncAutocompleteProps {
+interface AsyncAutocompleteProps extends RefAttributes<AsyncAutocompleteComponent> {
     fetchOptions: (searchText: string) => Promise<any>;
     debounceTime?: number;
     TextFieldProps? : TextFieldProps;
     AutocompleteProps?: Omit<Omit<AutocompleteProps<any, boolean, boolean, boolean>, 'renderInput'>, 'options'>;
 }
 
-const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
+export interface AsyncAutocompleteComponent {
+    clear: () => void
+}
 
-    const {AutocompleteProps, debounceTime = 300} = props;
+const AsyncAutocomplete = React.forwardRef<AsyncAutocompleteComponent, AsyncAutocompleteProps>((props, ref) => {
+
+    const {AutocompleteProps, debounceTime = 300, fetchOptions} = props;
     const {freeSolo = false, onOpen, onClose, onInputChange} = AutocompleteProps as any;
     const [open, setOpen] = useState(false);
     const [searchText, setSearchText] = useState("");
@@ -75,12 +79,13 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
         if(!open || (debouncedSearchText === "" && freeSolo)){
             return;
         }
+
         let isSubscribed = true;
         (async () => {
             setLoading(true);
             try {
-                const data = await props.fetchOptions(debouncedSearchText);
-                if(isSubscribed && data) {
+                const data = await fetchOptions(debouncedSearchText);
+                if(isSubscribed) {
                     setOptions(data);
                 }
             } finally {
@@ -91,12 +96,19 @@ const AsyncAutocomplete: React.FC<AsyncAutocompleteProps> = (props) => {
         return () => {
             isSubscribed = false;
         };
-    }, [freeSolo ? debouncedSearchText : open]);
+    }, [freeSolo, debouncedSearchText, open, fetchOptions]);
+
+    useImperativeHandle(ref, () => ({
+        clear: () => {
+            setSearchText("");
+            setOptions([]);
+        }
+    }));
 
     return (
         <Autocomplete {...autocompleteProps}/>
     );
-}
+});
 
 export default AsyncAutocomplete;
 

@@ -2,10 +2,11 @@ import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { invert } from "lodash";
 import { useSnackbar } from 'notistack';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { BadgeNo, BadgeYes } from '../../components/Badge';
+import LoadingContext from '../../components/loading/LoadingContext';
 import DefaultTable, { makeActionStyles, TableColumn, MuiDataTableRefComponent } from '../../components/Table';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
 import useFilter from '../../hooks/useFilter';
@@ -90,7 +91,7 @@ const Table = () => {
     const snackbar = useSnackbar();
     const subscribed = useRef(true); //current:true
     const [data, setData] = useState<Category[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
     const {
         columns, 
@@ -159,7 +160,6 @@ const Table = () => {
     ]);
 
     async function getData() {
-        setLoading(true);
         try {
             const {data} = await categoryHttp.list<ListResponse<Category>>({
                 queryParams: {
@@ -184,8 +184,6 @@ const Table = () => {
                 'Nao foi possível carregar as informações',
                 {variant: 'error'}
             );
-        } finally {
-            setLoading(false);
         }
     }
 
