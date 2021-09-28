@@ -21,8 +21,12 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::group(['namespace' => 'Api'], function(){
     $exceptCreateAndEdit = ['except' => ['create', 'edit']];
     Route::resource('categories', 'CategoryController', $exceptCreateAndEdit);
+    Route::delete('categories', 'CategoryController@destroyCollection');
     Route::resource('genres', 'GenreController', $exceptCreateAndEdit);
+    Route::delete('genres', 'GenreController@destroyCollection');
     Route::resource('cast_members', 'CastMemberController', $exceptCreateAndEdit);
+    Route::delete('cast_members', 'CastMembersController@destroyCollection');
     Route::post('/videos/{video}', 'VideoController@addFiles');
     Route::resource('videos', 'VideoController', $exceptCreateAndEdit);
+    Route::delete('videos', 'VideoController@destroyCollection');
 });

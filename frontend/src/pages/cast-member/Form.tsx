@@ -1,5 +1,5 @@
 import { FormControl, FormControlLabel, FormHelperText, FormLabel, Radio, RadioGroup, TextField } from '@material-ui/core'
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
 import castMemberHttp from '../../util/http/castmember-http';
@@ -9,6 +9,7 @@ import { useSnackbar} from 'notistack';
 import { CastMember } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import { DefaultForm } from '../../components/DefaultForm';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -39,7 +40,7 @@ export default function Form() {
     const history = useHistory();
     const {id} = useParams<any>();
     const [castMember, setCastMember] = useState<CastMember | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
 
     useEffect(() => {
         if(!id) {
@@ -47,12 +48,11 @@ export default function Form() {
         }
         let isSubscribed = true;
         (async () => {
-            setLoading(true);
             try {
                 const {data} = await castMemberHttp.get(id);
                 if(isSubscribed) {
-                    setCastMember(data);
-                    reset(data);
+                    setCastMember(data.data);
+                    reset(data.data);
                 }
             } catch(error) {
                 console.error(error);
@@ -60,8 +60,6 @@ export default function Form() {
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
                 );
-            } finally {
-                setLoading(false);
             }
 
             return () => {
@@ -75,7 +73,6 @@ export default function Form() {
     }, [register]);
     
     async function onSubmit(formData: any, event: any) {
-        setLoading(true);
         try {
             const http = !castMember
                 ? castMemberHttp.create(formData)
@@ -99,9 +96,6 @@ export default function Form() {
             snackbar.enqueueSnackbar('Nao foi possível salvar o membro de elenco', {
                 variant: 'error'
             });
-        }
-        finally {
-            setLoading(false);
         }
     }
 

@@ -1,5 +1,5 @@
 import { Checkbox, FormControlLabel, TextField } from '@material-ui/core'
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
 import categoryHttp from '../../util/http/category-http';
@@ -9,6 +9,7 @@ import { useSnackbar} from 'notistack';
 import { Category } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import { DefaultForm } from '../../components/DefaultForm';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -38,7 +39,7 @@ export default function Form() {
     const history = useHistory();
     const {id} = useParams<any>();
     const [category, setCategory] = useState<Category | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
 
     useEffect(() => {
         if(!id) {
@@ -46,12 +47,11 @@ export default function Form() {
         }
         let isSubscribed = true;
         (async () => {
-            setLoading(true);
             try {
                 const {data} = await categoryHttp.get(id);
                 if(isSubscribed) {
-                    setCategory(data);
-                    reset(data);
+                    setCategory(data.data);
+                    reset(data.data);
                 }
             } catch(error) {
                 console.error(error);
@@ -59,8 +59,6 @@ export default function Form() {
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
                 );
-            } finally {
-                setLoading(false);
             }
         })();
 
@@ -74,7 +72,6 @@ export default function Form() {
     }, [register]);
 
     async function onSubmit(formData: any, event: any) {
-        setLoading(true);
         try {
             const http = !category
                 ? categoryHttp.create(formData)
@@ -100,8 +97,6 @@ export default function Form() {
             snackbar.enqueueSnackbar('Nao foi possível salvar a categoria', {
                 variant: 'error'
             });
-        } finally {
-            setLoading(false);
         }
     }
 

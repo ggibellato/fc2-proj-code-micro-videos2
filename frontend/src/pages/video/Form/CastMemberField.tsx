@@ -1,6 +1,6 @@
 import { FormControl, FormControlProps, FormHelperText, Typography } from '@material-ui/core';
-import * as React from 'react'
-import AsyncAutocomplete from '../../../components/AsyncAutocomplete';
+import React, {MutableRefObject, RefAttributes, useImperativeHandle, useRef} from 'react'
+import AsyncAutocomplete, {AsyncAutocompleteComponent} from '../../../components/AsyncAutocomplete';
 import GridSelected from '../../../components/GridSelected';
 import GridSelectedItem from '../../../components/GridSelectedItem';
 import useCollectionManager from '../../../hooks/useCollectionManager';
@@ -8,7 +8,7 @@ import useHttpHandle from '../../../hooks/useHttpHandle';
 import castMemberHttp from '../../../util/http/castmember-http';
 import { CastMember, ListResponse } from '../../../util/models';
 
-interface CastMemberFieldProps {
+interface CastMemberFieldProps extends RefAttributes<CastMemberFieldComponent> {
     cast_members: CastMember[],
     setCastMembers: (cast_members:CastMember[]) => void,
     error: any,
@@ -16,7 +16,11 @@ interface CastMemberFieldProps {
     FormControlProps?: FormControlProps;
 }
 
-const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
+export interface CastMemberFieldComponent {
+    clear: () => void
+}
+
+const CastMemberField = React.forwardRef<CastMemberFieldComponent, CastMemberFieldProps>((props, ref) => {
     const {
         cast_members, 
         setCastMembers, 
@@ -25,6 +29,7 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
     } = props;
     const autoCompleteHttp = useHttpHandle();
     const {addItem, removeItem} = useCollectionManager(cast_members, setCastMembers);
+    const autoCompleteRef = useRef() as MutableRefObject<AsyncAutocompleteComponent>;
 
     function fetchOptions(searchText: string) {
         return autoCompleteHttp(
@@ -39,9 +44,14 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
         .catch(error => console.log(error));
     }
     
+    useImperativeHandle(ref, () => ({
+        clear: () => autoCompleteRef.current.clear()        
+    }));
+
     return (
         <>
             <AsyncAutocomplete 
+                ref={autoCompleteRef}
                 fetchOptions={fetchOptions}
                 AutocompleteProps={{
                     //autoSelect: true,
@@ -68,7 +78,7 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
                     {cast_members.map((cast_member, key) => 
                         <GridSelectedItem 
                             key={key} 
-                            xs={12}
+                            xs={6}
                             onDelete={() => {
                                 removeItem(cast_member);
                             }}
@@ -83,6 +93,6 @@ const CastMemberField: React.FC<CastMemberFieldProps> = (props) => {
             </FormControl>
         </>
     )   
-}
+});
 
 export default CastMemberField;

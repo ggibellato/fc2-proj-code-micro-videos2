@@ -7,6 +7,9 @@ use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 
 abstract class BasicCrudController extends Controller
 {
@@ -87,6 +90,29 @@ abstract class BasicCrudController extends Controller
         $obj = $this->model()::findOrFail($id);
         $obj->delete();
         return response()->noContent(); //204
+    }
+
+    public function destroyCollection(Request $request)
+    {
+        dump($request);
+        $data = $this->validateIds($request);
+        $this->model()::whereIn('Id', $data['ids'])->delete();
+        return response()->noContent(); //204
+    }
+
+    protected function validateIds(Request $request)
+    {
+        $mode = $this->model();
+        $ids = explode(',', $request->get('ids'));
+        $validator = Validator::make(
+            [
+                'ids' => $ids
+            ],
+            [
+                'ids' => 'required|exists:' . (new $model)->getTable() .',id'
+            ]
+         );
+        return $validator->validate();
     }
 
     protected function queryBuilder(): Builder

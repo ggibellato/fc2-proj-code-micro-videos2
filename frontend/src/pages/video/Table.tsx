@@ -1,16 +1,19 @@
 import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { useSnackbar } from 'notistack';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import DefaultTable, { makeActionStyles, TableColumn, MuiDataTableRefComponent } from '../../components/Table';
 import { FilterResetButton } from '../../components/Table/FilterResetButton';
+import DeleteDialog from '../../components/DeleteDialog'
 import useFilter from '../../hooks/useFilter';
 import { formatFromISO } from '../../util/date';
 import genreHttp from '../../util/http/genre-http';
 import videoHttp from '../../util/http/video-http';
 import { ListResponse, Video } from '../../util/models';
+import useDeleteCollection from '../../hooks/useDeleteCollection';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const columnsDefinition: TableColumn[] = [
     {
@@ -101,7 +104,8 @@ const Table = () => {
     const snackbar = useSnackbar();
     const subscribed = useRef(true); //current:true    
     const [data, setData] = useState<Video[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
+    const {openDeleteDialog, setOpenDeleteDialog, rowsToDelete, setRowsToDelete} = useDeleteCollection();
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;    
     const {
         columns, 
@@ -138,7 +142,6 @@ const Table = () => {
     ]);
 
     async function getData() {
-        setLoading(true);
         try {
             const {data} = await videoHttp.list<ListResponse<Video>>({
                 queryParams: {
@@ -152,6 +155,9 @@ const Table = () => {
             if(subscribed.current) {
                 setData(data.data);
                 setTotalRecords(data.meta.total);
+                if(openDeleteDialog) {
+                    setOpenDeleteDialog(false);
+                }
             }
         } catch(error) {
             console.error(error);
@@ -162,13 +168,45 @@ const Table = () => {
                 'Nao foi possível carregar as informações',
                 {variant: 'error'}
             );
-        } finally {
-            setLoading(false);
         }
+    }
+
+    function deleteRows(confirmed: boolean) {
+        if(!confirmed) {
+            setOpenDeleteDialog(false);
+            return;
+        }
+        const ids = rowsToDelete
+            .data
+            .map((value) => data[value.index].id)
+            .join(',');
+        videoHttp
+            .deleteCollection({ids})
+            .then(response => {
+                snackbar.enqueueSnackbar('Registros excluido com sucesso', {
+                    variant: 'success'
+                });
+                if( filterState.pagination.page > 1 
+                    && rowsToDelete.data.length === filterState.pagination.per_page) {
+                    const page = filterState.pagination.page -2;
+                    filterManager.changePage(page);
+                }
+                else {
+                    getData();
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+                snackbar.enqueueSnackbar(
+                    'Nao foi possivel excluir os registros',
+                    {variant: 'error'}
+                );
+            });
     }
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length-1)}>
+            <DeleteDialog open={openDeleteDialog} handleClose={deleteRows} />
             <DefaultTable 
                 title="Listagem de videos"
                 columns={columns}
@@ -196,7 +234,14 @@ const Table = () => {
                     onChangePage: page => filterManager.changePage(page),
                     onChangeRowsPerPage: perPage => filterManager.changeRowsPerPage(perPage),
                     onColumnSortChange: (changedColumn: string, direction: string)  =>  
-                        filterManager.changeColumnSort(changedColumn, direction)
+                        filterManager.changeColumnSort(changedColumn, direction),
+                    onRowsDelete: (rowsDeleted: { 
+                                        lookup: { [dataIndex: number]: boolean };
+                                        data: Array<{ index: number; dataIndex: number }>;
+                                    }, newTableData: any[]) => {
+                        setRowsToDelete(rowsDeleted as any);
+                        return false;
+                    }
                 }}
             />
         </MuiThemeProvider>

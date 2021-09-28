@@ -1,5 +1,6 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse, CancelTokenSource } from "axios";
 import axios from "axios";
+import {serialize } from "object-to-formdata";
 
 export default class HttpResource {
 
@@ -29,18 +30,65 @@ export default class HttpResource {
     }
 
     create<T = any>(data: any): Promise<AxiosResponse<T>> {
-        return this.http.post<T>(this.resource, data);
+        let sendData = this.makeSendData(data);
+        return this.http.post<T>(this.resource, sendData);
     }   
     
-    update<T = any>(id: any, data: any): Promise<AxiosResponse<T>> {
-        return this.http.put<T>(`${this.resource}/${id}`, data);
+    update<T = any>(id: any, data: any, options?: {http?:{ usePost: boolean}}): Promise<AxiosResponse<T>> {
+        let sendData = data;
+        if(this.containsFile(data)){
+            sendData = this.getFormData(data);
+        }
+        const {http} = (options || {}) as any;
+        return !options || !http || !http.usePost
+        ? this.http.put<T>(`${this.resource}/${id}`, sendData)
+        : this.http.post<T>(`${this.resource}/${id}`, sendData);
     }
 
     delete<T = any>(id: any): Promise<AxiosResponse<T>> {
         return this.http.delete<T>(`${this.resource}/${id}`);
     }
 
+    deleteCollection<T = any>(queryParams:any): Promise<AxiosResponse<T>> {
+        const config:AxiosRequestConfig = {};
+        if(queryParams) {
+            config['params'] = queryParams;
+        }
+        return this.http.delete<T>(`${this.resource}`, config);
+    }
+
     isCancelledRequest(error: any) {
         return axios.isCancel(error);
+    }
+
+    private makeSendData(data: any) {
+        return this.containsFile(data) ? this.getFormData(data) : data;
+    }
+
+    private getFormData(data: any) {
+        // const formData = new FormData();
+        // Object
+        //     .keys(data)
+        //     .forEach(key => {
+        //         let value = data[key];
+        //         if (typeof value === "undefined") {
+        //             return;
+        //         }
+        //         if (typeof value === "boolean") {
+        //             value = value ? 1 : 0;
+        //         }
+        //         if(value instanceof Array){
+        //             value.forEach(v => formData.append(`${key}[]`, v))
+        //             return;
+        //         }
+        //         formData.append(key, value)
+        //     });
+        return serialize(data, {booleansAsIntegers: true});
+    }
+
+    private containsFile(data:any) {
+        return Object
+            .values(data)
+            .filter(el => el instanceof File).length !== 0
     }
 }

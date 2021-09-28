@@ -1,5 +1,5 @@
 import { Checkbox, FormControlLabel, MenuItem, TextField } from '@material-ui/core'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useForm } from "react-hook-form";
 import { useParams, useHistory } from 'react-router';
 import genreHttp from '../../util/http/genre-http';
@@ -10,6 +10,7 @@ import { useSnackbar} from 'notistack';
 import { Category, Genre } from '../../util/models';
 import SubmitActions from '../../components/SubmitActions';
 import { DefaultForm } from '../../components/DefaultForm';
+import LoadingContext from '../../components/loading/LoadingContext';
 
 const validationSchema = yup.object().shape({
     name: yup.string()
@@ -37,12 +38,11 @@ export default function Form() {
     const {id} = useParams<any>();
     const [genre, setGenre] = useState<Genre | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+    const loading = useContext(LoadingContext);
 
     useEffect(() => {
         let isSubscribed = true;
         (async () => {
-            setLoading(true);
             const promises = [categoryHttp.list({queryParams: {all: ''}})];            
             if(id) {
                 promises.push(genreHttp.get(id));
@@ -52,10 +52,10 @@ export default function Form() {
                 if(isSubscribed) {
                     setCategories(categoriesResponse.data.data);
                     if(id) {
-                        setGenre(genreResponse.data);
+                        setGenre(genreResponse.data.data);
                         reset({
-                            ...genreResponse.data,
-                            categories_id: genreResponse.data.categories.map((category:any) => category.id)
+                            ...genreResponse.data.data,
+                            categories_id: genreResponse.data.data.categories.map((category:any) => category.id)
                         });
                     }
                 }
@@ -64,8 +64,6 @@ export default function Form() {
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
                 );
-            } finally {
-                setLoading(false);
             }
         })();
 
@@ -80,7 +78,6 @@ export default function Form() {
     }, [register]);
 
     async function onSubmit(formData: any, event: any) {
-        setLoading(true);
         try {
             const http = !genre
                 ? genreHttp.create(formData)
@@ -104,8 +101,6 @@ export default function Form() {
             snackbar.enqueueSnackbar('Nao foi possível salvar o gênero', {
                 variant: 'error'
             });
-        } finally {
-            setLoading(false)            
         }
     }
 
