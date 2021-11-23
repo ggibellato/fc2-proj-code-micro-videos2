@@ -5,6 +5,9 @@ import CloseIcon from "@material-ui/icons/Close";
 
 const useStyles = makeStyles((theme: Theme) => {
     return {
+        root: {
+            pointerEvents: 'all', // this avoid the problem where the click does not reach the snackbar
+        },
         variantSuccess: {
             backgroundColor: theme.palette.success.main
         },
@@ -34,18 +37,18 @@ export const  SnackbarProvider: React.FC<SnackbarProviderProps> = (props) => {
             <IconButton 
                 color={"inherit"} 
                 style={{fontSize:20}}
-                onClick={() => snackbarProviderRef.closeSnackbar(key)}
+                onClick={() => {snackbarProviderRef.closeSnackbar(key)}}
             >
                 <CloseIcon />
             </IconButton>
         ),
-        children: null
+        children: props.children
     }
 
     const newProps = {...defaultProps, ...props};
 
     return (
-        <NotisnackProvider {...newProps}>
+        <NotisnackProvider className={classes.root} {...newProps}>
             {props.children}
         </NotisnackProvider>
     );

@@ -1,12 +1,11 @@
-import { CssBaseline, MuiThemeProvider } from '@material-ui/core';
-import Box from '@material-ui/core/Box';
+import { Box, CssBaseline, MuiThemeProvider } from '@material-ui/core';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import Breadcrumbs from './components/Breadcrumbs';
 import Navbar from './components/Navbar';
 import AppRouter from './routes/AppRouter';
 import theme from './theme';
-import {SnackbarProvider} from './components/SnackbarProvider';
+import { SnackbarProvider } from './components/SnackbarProvider';
 import Spinner from './components/Spinner';
 import { LoadingProvider } from './components/loading/LoadingProvider';
 
