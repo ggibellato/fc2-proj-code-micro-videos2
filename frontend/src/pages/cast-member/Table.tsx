@@ -2,7 +2,7 @@ import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { invert } from "lodash";
 import { useSnackbar } from 'notistack';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingContext from '../../components/loading/LoadingContext';
 
@@ -87,25 +87,12 @@ const rowsPerPageOptions = [15,25,50]
 
 const Table = () => {
 
-    const snackbar = useSnackbar();
+    const {enqueueSnackbar} = useSnackbar();
     const subscribed = useRef(true); //current:true    
     const [data, setData] = useState<CastMember[]>([]);
     const loading = useContext(LoadingContext);
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
-    const {
-        columns, 
-        filterManager, 
-        filterState, 
-        debounceFilterState,
-        totalRecords, 
-        setTotalRecords
-    } = useFilter({
-        columns: columnsDefinition,
-        debounceTime: debounceTime,
-        tableRef: tableRef,
-        rowsPerPage: rowsPerPage,
-        rowsPerPageOptions: rowsPerPageOptions,
-        extraFilter: {
+    const extraFilter = useMemo(() => ({
             createValidationSchema: () => {
                 return yup.object().shape({
                     type: yup.string()
@@ -116,7 +103,7 @@ const Table = () => {
                         .default(null)
                 })
             },
-            formatSearchParams: (debouncedState) => {
+            formatSearchParams: (debouncedState:any) => {
                 return debouncedState.extraFilter 
                     ? {
                         ...(
@@ -126,47 +113,45 @@ const Table = () => {
                     } 
                     : undefined
             },
-            getStateFromURL: (queryParams) => {
+            getStateFromURL: (queryParams:any) => {
                 return {
                     type: queryParams.get('type')
                 }
             }
-        }
+    }),[]);
+
+    const {
+        columns, 
+        filterManager,
+        cleanSearchText,
+        filterState, 
+        debounceFilterState,
+        totalRecords, 
+        setTotalRecords
+    } = useFilter({
+        columns: columnsDefinition,
+        debounceTime: debounceTime,
+        tableRef: tableRef,
+        rowsPerPage: rowsPerPage,
+        rowsPerPageOptions: rowsPerPageOptions,
+        extraFilter
     });
+    const searchText = cleanSearchText(debounceFilterState.search);
     const indexColumnType = columns.findIndex(c => c.name === 'type');
     const columnType = columns[indexColumnType];
     const typeFilterValue = filterState.extraFilter && filterState.extraFilter.type as never;
     (columnType.options as any).filterList = typeFilterValue ? [typeFilterValue] : [];
 
-    useEffect(()=>{
-        filterManager.replaceHistory();
-    }, []);
-
-    useEffect(() => {
-        subscribed.current = true;
-        filterManager.pushHistory();
-        getData();
-        return () => {
-            subscribed.current = false;
-        };
-    }, [
-        filterManager.cleanSearchText(debounceFilterState.search), 
-        debounceFilterState.pagination.page, 
-        debounceFilterState.pagination.per_page, 
-        debounceFilterState.order,
-        JSON.stringify(debounceFilterState.extraFilter)
-    ]);
-
-    async function getData() {
+    const getData = useCallback(async ({search, page, per_page, sort, dir, type}) => {
         try {
             const {data} = await castMemberHttp.list<ListResponse<CastMember>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.sort,
-                    dir: filterState.order.dir,
-                    ...(filterState.extraFilter && filterState.extraFilter.type && {type: invert(CastMemberTypeMap)[filterState.extraFilter.type]})
+                    search,
+                    page,
+                    per_page,
+                    sort,
+                    dir,
+                    ...(type && {type: invert(CastMemberTypeMap)[type]})
                 }
             });
             if(subscribed.current) {
@@ -178,12 +163,34 @@ const Table = () => {
             if(castMemberHttp.isCancelledRequest(error)) {
                return; 
             }
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Nao foi possível carregar as informações',
                 {variant: 'error'}
             );
         }
-    }
+    }, [enqueueSnackbar, setTotalRecords]);
+
+    useEffect(() => {
+        subscribed.current = true;
+        getData({
+            search: searchText,
+            page: debounceFilterState.pagination.page,
+            per_page: debounceFilterState.pagination.per_page,
+            sort: debounceFilterState.order.sort,
+            dir: debounceFilterState.order.dir,
+            ...(debounceFilterState.extraFilter && debounceFilterState.extraFilter.type && {type: debounceFilterState.extraFilter.type})
+        });
+        return () => {
+            subscribed.current = false;
+        };
+    }, [
+        getData,
+        searchText, 
+        debounceFilterState.pagination.page, 
+        debounceFilterState.pagination.per_page, 
+        debounceFilterState.order,
+        debounceFilterState.extraFilter
+    ]);
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length-1)}>
@@ -203,14 +210,22 @@ const Table = () => {
                     count: totalRecords,
                     onFilterChange: (column, filterList) => {
                         const columnIndex = columns.findIndex(c => c.name === column);
-                        filterManager.changeExtraFilter({
-                            [column as any] : filterList[columnIndex].length ? filterList[columnIndex][0]: null
-                        })
+                        var data:any = {};
+                        if(column) {
+                            data = {[column as never] : filterList[columnIndex].length ? filterList[columnIndex][0]: null};
+                        } else {
+                            columns.forEach(c => {
+                                data[c.name as never] = null;
+                            });
+                        }
+                        filterManager.changeExtraFilter(data);
                     },
                     customToolbar: () => (
                         <FilterResetButton handleClick={() => filterManager.resetFilter()} />
                     ),
-                    onSearchChange: searchText => filterManager.changeSearch(searchText),
+                    onSearchChange: searchText => { 
+                        filterManager.changeSearch(searchText);
+                    },
                     onChangePage: page => filterManager.changePage(page),
                     onChangeRowsPerPage: perPage => filterManager.changeRowsPerPage(perPage),
                     onColumnSortChange: (changedColumn: string, direction: string)  =>  

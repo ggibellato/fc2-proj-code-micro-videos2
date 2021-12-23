@@ -33,7 +33,7 @@ export default function Form() {
             is_active: true
         }
     });
-    const snackbar = useSnackbar()
+    const {enqueueSnackbar} = useSnackbar()
     const history = useHistory();
     const {id} = useParams<any>();
     const [genre, setGenre] = useState<Genre | null>(null);
@@ -60,7 +60,7 @@ export default function Form() {
                     }
                 }
             } catch (error) {
-                snackbar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Nao foi possível carregar as informações',
                     {variant: 'error'}
                 );
@@ -70,7 +70,7 @@ export default function Form() {
         return () => {
             isSubscribed = false;
         };
-    }, [id, snackbar, reset]);
+    }, [id, enqueueSnackbar, reset]);
 
     useEffect(() => {
         register({name: "categories_id"});
@@ -83,7 +83,7 @@ export default function Form() {
                 ? genreHttp.create(formData)
                 : genreHttp.update(genre.id, formData);
             const {data} = await http;
-            snackbar.enqueueSnackbar('Gênero salvo com sucesso', {
+            enqueueSnackbar('Gênero salvo com sucesso', {
                 variant: 'success'
             });
             setTimeout( () => {
@@ -98,7 +98,7 @@ export default function Form() {
             })
         } catch (error) {
             console.error(error);
-            snackbar.enqueueSnackbar('Nao foi possível salvar o gênero', {
+            enqueueSnackbar('Nao foi possível salvar o gênero', {
                 variant: 'error'
             });
         }

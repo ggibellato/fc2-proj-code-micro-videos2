@@ -1,23 +1,22 @@
-import {History} from 'history';
 import {isEqual} from 'lodash';
 import { MUIDataTableColumn } from "mui-datatables";
-import { Dispatch, Reducer, useReducer, useState } from "react";
-import {useHistory} from 'react-router';
+import { Dispatch, Reducer, useCallback, useReducer, useEffect, useMemo, useState } from "react";
+import {useHistory, useLocation} from 'react-router';
 import { useDebounce } from 'use-debounce';
 
 import { MuiDataTableRefComponent } from "../components/Table";
 import reducer, { Creators } from "../store/filter";
 import { Actions as FilterActions, State as FilterState } from "../store/filter/types";
 import * as yup from '../util/vendor/yup/yup';
+import { ObjectSchema } from '../util/vendor/yup/yup';
 
 interface FilterManagerOptions {
+    schema: ObjectSchema<any, any, any, any>;
     columns: MUIDataTableColumn[];
     tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
     rowsPerPage: number;
-    rowsPerPageOptions: number[];
-    debounceTime: number;
-    history: History;
-    extraFilter?: ExtraFilter;
+    dispatch: Dispatch<FilterActions>;
+    state: FilterState;
 }
 
 interface ExtraFilter {
@@ -26,25 +25,146 @@ interface ExtraFilter {
     createValidationSchema: () => any;
 }
 
-interface UseFilterOptions extends Omit<FilterManagerOptions, 'history'> {
-
+interface UseFilterOptions {
+    columns: MUIDataTableColumn[];
+    tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
+    rowsPerPage: number;
+    rowsPerPageOptions: number[];
+    debounceTime: number;
+    extraFilter?: ExtraFilter;
 }
 
 export default function useFilter(options: UseFilterOptions) {
     const history = useHistory();
-    const filterManager = new FilterManager({...options, history});
-    const INITIAL_STATE = filterManager.getStateFromURL();
+    const location = useLocation();
+    const {search: locationSearch, pathname: locationPathname, state: locationState} = location;
+    const {rowsPerPage, rowsPerPageOptions, extraFilter, columns} = options;
+
+    const schema = useMemo(() => {
+        return yup.object().shape( {
+            search: yup.string()
+                .transform( value => !value ? undefined : value)
+                .default(''),
+            pagination: yup.object().shape({
+                page: yup.number()
+                    .transform(value => isNaN(value) || parseInt(value) < 1 ? undefined : value)
+                    .default(1),
+                per_page: yup.number()
+                    .transform( value => 
+                        isNaN(value) || !rowsPerPageOptions.includes(parseInt(value)) ? undefined : value
+                    )
+                    .default(rowsPerPage)
+            }),
+            order: yup.object().shape({
+                sort: yup.string()
+                    .nullable()
+                    .transform(value => {
+                        const columnsName = columns
+                            .filter(column => !column.options || column.options.sort !== false)
+                            .map(column => column.name);
+                        return columnsName.includes(value) ? value : undefined;
+                    })
+                    .default(null),
+                dir: yup.string()
+                    .nullable()
+                    .transform(value => !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value)
+                    .default(null),
+            }),
+            ...(
+                extraFilter && {
+                    extraFilter: extraFilter.createValidationSchema()
+                }
+            )
+        });
+    }, [rowsPerPageOptions, rowsPerPage, columns, extraFilter]);
+
+    //react-router history mutable | location immutable
+    const stateFromURL = useMemo(() => {
+        const queryParams = new URLSearchParams(locationSearch.substr(1));
+        return schema.cast({
+            search: queryParams.get('search'),
+            pagination: {
+                page: queryParams.get('page'),
+                per_page: queryParams.get('per_page')
+            },
+            order: {
+                sort: queryParams.get('sort'),
+                dir: queryParams.get('dir')
+            },
+            ...(
+                extraFilter && {
+                    extraFilter: extraFilter.getStateFromURL(queryParams)
+                }
+            )
+        });
+    },[locationSearch, schema, extraFilter]);
+
+    const cleanSearchText = useCallback((text: any) => {
+        let cleanText = text;
+        if(cleanText && cleanText.value !== undefined){
+            cleanText = cleanText.value;
+        }
+        return cleanText;
+    }, []);
+
+    const formatSearchParams = useCallback((state, extraFilter) => {
+        const search = cleanSearchText(state.search);
+        return  {
+            ...(search && search !== '' && {search: search}),
+            ...(state.pagination.page !== 1 && {page: state.pagination.page}),
+            ...(state.pagination.per_page !== 15 && {per_page: state.pagination.per_page}),
+            ...(
+                state.order.sort && {
+                    sort: state.order.sort,
+                    dir: state.order.dir
+                }
+            ),
+            ...(
+                extraFilter && extraFilter.formatSearchParams(state)
+            )
+        };
+    }, [cleanSearchText]);
+
+    const INITIAL_STATE = stateFromURL;
     const [filterState, dispatch] = useReducer<Reducer<FilterState, FilterActions>>(reducer, INITIAL_STATE);
+    const filterManager = new FilterManager({...options, state: filterState, dispatch, schema});
     const [debounceFilterState] = useDebounce(filterState, options.debounceTime);
     const [totalRecords, setTotalRecords] = useState<number>(0);
 
-    filterManager.state = filterState;
-    filterManager.debouncedState = debounceFilterState;
-    filterManager.dispatch = dispatch;
+    useEffect(() => {
+        history.replace({
+            pathname: locationPathname,
+            search: "?" + new URLSearchParams(formatSearchParams(stateFromURL, extraFilter)),
+            state: stateFromURL
+        });
+    }, [history, locationPathname, formatSearchParams, stateFromURL, extraFilter]);
 
+    useEffect(() => {
+        const newLocation = {
+            pathName: locationPathname,
+            search: "?" + new URLSearchParams(formatSearchParams(debounceFilterState, extraFilter)),
+            state: {
+                ...debounceFilterState,
+                search: cleanSearchText(debounceFilterState.search)
+            }
+        }
+        const oldState = locationState;
+        const nextState = {
+            ...debounceFilterState,
+            search: cleanSearchText(debounceFilterState.search),
+        };
+        if(isEqual(oldState, nextState)) {
+            return;
+        }
+        history.push(newLocation);
+    }, [history, locationPathname, formatSearchParams, locationState, debounceFilterState, extraFilter, cleanSearchText]);
+
+    filterManager.state = filterState;
     filterManager.applyOderInColumns();
+
     return {
         columns: filterManager.columns,
+        cleanSearchText,
         filterManager,
         filterState,
         debounceFilterState,
@@ -56,25 +176,20 @@ export default function useFilter(options: UseFilterOptions) {
 
 export class FilterManager {
     schema: any;
-    state: FilterState = null as any;
-    debouncedState: FilterState = null as any;
-    dispatch: Dispatch<FilterActions> = null as any;
+    state: FilterState;
+    dispatch: Dispatch<FilterActions>;
     columns: MUIDataTableColumn[];
     rowsPerPage: number;
-    rowsPerPageOptions: number[];
-    history: History;
-    extraFilter?: ExtraFilter;
     tableRef: React.MutableRefObject<MuiDataTableRefComponent>;
 
     constructor(options: FilterManagerOptions) {
-        const {columns, rowsPerPage, rowsPerPageOptions, history, extraFilter, tableRef} = options;
+        const {schema, columns, rowsPerPage, tableRef, dispatch, state} = options;
+        this.schema = schema;
         this.columns = columns;
         this.rowsPerPage = rowsPerPage;
-        this.rowsPerPageOptions = rowsPerPageOptions;
-        this.history = history;
-        this.extraFilter = extraFilter;
-        this.tableRef= tableRef;
-        this.createValidationSchema();
+        this.tableRef = tableRef;
+        this.dispatch = dispatch;
+        this.state = state;
     }
 
     private resetTablePagination() {
@@ -120,14 +235,6 @@ export class FilterManager {
         });
     }
 
-    cleanSearchText(text: any) {
-        let cleanText = text;
-        if(cleanText && cleanText.value !== undefined){
-            cleanText = cleanText.value;
-        }
-        return cleanText;
-    }
-
     resetFilter() {
         const INITIAL_STATE = {
             ...this.schema.cast({}),
@@ -144,106 +251,5 @@ export class FilterManager {
             })
           );        
         this.resetTablePagination();          
-    }
-
-    replaceHistory() {
-        this.history.replace({
-            pathname: this.history.location.pathname,
-            search: "?" + new URLSearchParams(this.formatSearchParams()),
-            state: this.debouncedState
-        });
-    }
-
-    pushHistory() {
-        const newLocation = {
-            pathName: this.history.location.pathname,
-            search: "?" + new URLSearchParams(this.formatSearchParams()),
-            state: {
-                ...this.debouncedState,
-                search: this.cleanSearchText(this.debouncedState.search)
-            }
-        }
-        const oldState = this.history.location.state;
-        const nextState = this.debouncedState;
-        if(isEqual(oldState, nextState)) {
-            return;
-        }
-        this.history.push(newLocation);
-    }
-
-    getStateFromURL() {
-        const queryParams = new URLSearchParams(this.history.location.search.substr(1));
-        return this.schema.cast({
-            search: queryParams.get('search'),
-            pagination: {
-                page: queryParams.get('page'),
-                per_page: queryParams.get('per_page')
-            },
-            order: {
-                sort: queryParams.get('sort'),
-                dir: queryParams.get('dir')
-            },
-            ...(
-                this.extraFilter && {
-                    extraFilter: this.extraFilter.getStateFromURL(queryParams)
-                }
-            )
-        });
-    }
-
-    private formatSearchParams() {
-        const search = this.cleanSearchText(this.state.search);
-        return  {
-            ...(search && search !== '' && {search: search}),
-            ...(this.state.pagination.page !== 1 && {page:this.debouncedState.pagination.page}),
-            ...(this.state.pagination.per_page !== 15 && {per_page:this.debouncedState.pagination.per_page}),
-            ...(
-                this.state.order.sort && {
-                    sort: this.debouncedState.order.sort,
-                    dir: this.debouncedState.order.dir
-                }
-            ),
-            ...(
-                this.extraFilter && this.extraFilter.formatSearchParams(this.debouncedState)
-            )
-        };
-    }
-
-    private createValidationSchema() {
-        this.schema = yup.object().shape( {
-            search: yup.string()
-                .transform( value => !value ? undefined : value)
-                .default(''),
-            pagination: yup.object().shape({
-                page: yup.number()
-                    .transform(value => isNaN(value) || parseInt(value) < 1 ? undefined : value)
-                    .default(1),
-                per_page: yup.number()
-                    .transform( value => 
-                        isNaN(value) || !this.rowsPerPageOptions.includes(parseInt(value)) ? undefined : value
-                    )
-                    .default(this.rowsPerPage)
-            }),
-            order: yup.object().shape({
-                sort: yup.string()
-                    .nullable()
-                    .transform(value => {
-                        const columnsName = this.columns
-                            .filter(column => !column.options || column.options.sort !== false)
-                            .map(column => column.name);
-                        return columnsName.includes(value) ? value : undefined;
-                    })
-                    .default(null),
-                dir: yup.string()
-                    .nullable()
-                    .transform(value => !value || !['asc', 'desc'].includes(value.toLowerCase()) ? undefined : value)
-                    .default(null),
-            }),
-            ...(
-                this.extraFilter && {
-                    extraFilter: this.extraFilter.createValidationSchema()
-                }
-            )
-        });
     }
 }

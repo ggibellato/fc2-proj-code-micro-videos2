@@ -203,7 +203,8 @@ class BasicCrudControllerTest extends TestCase
         $request
             ->shouldReceive('all')
             ->once()
-            ->andReturn(['name' => 'test_name', 'description' => 'test_description']);
+            ->andReturn(['name' => 'test_name', 'description' => 'test_description']
+        );
         $result = $this->controller->store($request);
         $resource = new CategoryResourceStub(CategoryStub::find(2)->toArray());
         $this->assertEquals(
@@ -263,7 +264,10 @@ class BasicCrudControllerTest extends TestCase
         $request
             ->shouldReceive('all')
             ->once()
-            ->andReturn(['name' => 'test_name_update', 'description' => 'test_description_update']);
+            ->andReturn(['name' => 'test_name_update', 'description' => 'test_description_update'])
+            ->shouldReceive('isMethod')
+            ->once()
+            ->andReturn(true);
         $obj = $this->controller->update($request, $this->category->id);
         $resource = new CategoryResourceStub(CategoryStub::find($this->category->id)->toArray());
         $this->assertEquals(
