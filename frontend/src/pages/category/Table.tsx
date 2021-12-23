@@ -2,7 +2,7 @@ import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { invert } from "lodash";
 import { useSnackbar } from 'notistack';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { BadgeNo, BadgeYes } from '../../components/Badge';
@@ -88,25 +88,12 @@ const rowsPerPageOptions = [15,25,50]
 
 const Table = () => {
 
-    const snackbar = useSnackbar();
+    const {enqueueSnackbar} = useSnackbar();
     const subscribed = useRef(true); //current:true
     const [data, setData] = useState<Category[]>([]);
     const loading = useContext(LoadingContext);
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;
-    const {
-        columns, 
-        filterManager, 
-        filterState, 
-        debounceFilterState,
-        totalRecords, 
-        setTotalRecords
-    } = useFilter({
-        columns: columnsDefinition,
-        debounceTime: debounceTime,
-        tableRef: tableRef,
-        rowsPerPage: rowsPerPage,
-        rowsPerPageOptions: rowsPerPageOptions,
-        extraFilter: {
+    const extraFilter = useMemo(() => ({
             createValidationSchema: () => {
                 return yup.object().shape({
                     is_active: yup.string()
@@ -117,7 +104,7 @@ const Table = () => {
                         .default(null)
                 })
             },
-            formatSearchParams: (debouncedState) => {
+            formatSearchParams: (debouncedState: any) => {
                 return debouncedState.extraFilter 
                     ? {
                         ...(
@@ -127,48 +114,45 @@ const Table = () => {
                     } 
                     : undefined
             },
-            getStateFromURL: (queryParams) => {
+            getStateFromURL: (queryParams: any) => {
                 return {
                     is_active: queryParams.get('is_active')
                 }
             }
-        }
+    }),[]);
+
+    const {
+        columns, 
+        filterManager,
+        cleanSearchText,
+        filterState, 
+        debounceFilterState,
+        totalRecords, 
+        setTotalRecords
+    } = useFilter({
+        columns: columnsDefinition,
+        debounceTime: debounceTime,
+        tableRef: tableRef,
+        rowsPerPage: rowsPerPage,
+        rowsPerPageOptions: rowsPerPageOptions,
+        extraFilter
     });
+    const searchText = cleanSearchText(debounceFilterState.search);
     const indexColumnIsActive = columns.findIndex(c => c.name === 'is_active');
     const columnIsActive = columns[indexColumnIsActive];
     const isActiveFilterValue = filterState.extraFilter && filterState.extraFilter.is_active as never;
     (columnIsActive.options as any).filterList = isActiveFilterValue ? [isActiveFilterValue] : [];
 
-    useEffect(()=>{
-        filterManager.replaceHistory();
-    }, []);
-
-    //componentDidUpdate
-    useEffect(() => {
-        subscribed.current = true;
-        filterManager.pushHistory();
-        getData();
-        return () => {
-            subscribed.current = false;
-        };
-    }, [
-        filterManager.cleanSearchText(debounceFilterState.search), 
-        debounceFilterState.pagination.page, 
-        debounceFilterState.pagination.per_page, 
-        debounceFilterState.order,
-        JSON.stringify(debounceFilterState.extraFilter)
-    ]);
-
-    async function getData() {
+    const getData = useCallback(async ({search, page, per_page, sort, dir, is_active}) => {
         try {
             const {data} = await categoryHttp.list<ListResponse<Category>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.sort,
-                    dir: filterState.order.dir,
-                    ...(filterState.extraFilter && filterState.extraFilter.is_active && {is_active: invert(IsActiveMap)[filterState.extraFilter.is_active]})
+                    search,
+                    page,
+                    per_page,
+                    sort,
+                    dir,
+                    ...(is_active && {is_active: invert(IsActiveMap)[is_active]})
                 }
             });
             if(subscribed.current) {
@@ -180,12 +164,36 @@ const Table = () => {
             if(categoryHttp.isCancelledRequest(error)) {
                return; 
             }
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Nao foi possível carregar as informações',
                 {variant: 'error'}
             );
         }
-    }
+    }, [enqueueSnackbar, setTotalRecords]);
+
+
+    //componentDidUpdate
+    useEffect(() => {
+        subscribed.current = true;
+        getData({
+            search: searchText,
+            page: debounceFilterState.pagination.page,
+            per_page: debounceFilterState.pagination.per_page,
+            sort: debounceFilterState.order.sort,
+            dir: debounceFilterState.order.dir,
+            ...(debounceFilterState.extraFilter && debounceFilterState.extraFilter.is_active && {is_active: debounceFilterState.extraFilter.is_active})
+        });
+        return () => {
+            subscribed.current = false;
+        };
+    }, [
+        getData,
+        searchText, 
+        debounceFilterState.pagination.page, 
+        debounceFilterState.pagination.per_page, 
+        debounceFilterState.order,
+        debounceFilterState.extraFilter
+    ]);
 
     return (
         <MuiThemeProvider theme={makeActionStyles(columnsDefinition.length-1)}>
@@ -205,9 +213,15 @@ const Table = () => {
                     count: totalRecords,
                     onFilterChange: (column, filterList) => {
                         const columnIndex = columns.findIndex(c => c.name === column);
-                        filterManager.changeExtraFilter({
-                            [column as any] : filterList[columnIndex].length ? filterList[columnIndex][0]: null
-                        })
+                        var data:any = {};
+                        if(column) {
+                            data = {[column as any] : filterList[columnIndex].length ? filterList[columnIndex][0]: null};
+                        } else {
+                            columns.forEach(c => {
+                                data[c.name as never] = null;
+                            });
+                        }
+                        filterManager.changeExtraFilter(data);
                     },
                     customToolbar: () => (
                         <FilterResetButton handleClick={() => filterManager.resetFilter()} />

@@ -34,16 +34,26 @@ const DebouncedTableSearch = ({ options, searchText, onSearch, onHide, debounced
   const classes = useStyles();
 
   const [text, setText] = useState(searchText);
-  const debounceOnSearch = useCallback(debounce( text => onSearch(text), debouncedTime), []);
+  
   useEffect(() => {
     if(searchText && searchText.value !== undefined && text !== searchText.value) {
       setText(searchText.value);
     }
-  }, [searchText]);
+  }, [searchText, text]);
+
+  // if changed to 
+  // const debounceOnSearch = useCallback(() => {
+  //  debounce(text => onSearch(text), debouncedTime);
+  //},[onSearch, debouncedTime]);
+  // it will not call when text change
+  const debounceOnSearch = useCallback(debounce(text => onSearch(text), debouncedTime),[onSearch, debouncedTime]);
+
+  useEffect(() => {
+      debounceOnSearch(text);
+  }, [debounceOnSearch, text]);
 
   const handleTextChange = event => {
     const value = event.target.value;
-    debounceOnSearch(value);
     setText(value);
   };
 

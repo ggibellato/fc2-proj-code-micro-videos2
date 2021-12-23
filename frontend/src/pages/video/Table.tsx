@@ -1,7 +1,7 @@
 import { IconButton, MuiThemeProvider } from '@material-ui/core';
 import EditIcon from '@material-ui/icons/Edit';
 import { useSnackbar } from 'notistack';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import DefaultTable, { makeActionStyles, TableColumn, MuiDataTableRefComponent } from '../../components/Table';
@@ -101,7 +101,7 @@ const rowsPerPageOptions = [15,25,50]
 
 const Table = () => {
 
-    const snackbar = useSnackbar();
+    const {enqueueSnackbar} = useSnackbar();
     const subscribed = useRef(true); //current:true    
     const [data, setData] = useState<Video[]>([]);
     const loading = useContext(LoadingContext);
@@ -109,7 +109,8 @@ const Table = () => {
     const tableRef = useRef() as React.MutableRefObject<MuiDataTableRefComponent>;    
     const {
         columns, 
-        filterManager, 
+        filterManager,
+        cleanSearchText,
         filterState, 
         debounceFilterState,
         totalRecords, 
@@ -121,35 +122,17 @@ const Table = () => {
         rowsPerPage: rowsPerPage,
         rowsPerPageOptions: rowsPerPageOptions
     });
+    const searchText = cleanSearchText(debounceFilterState.search);
 
-    useEffect(()=>{
-        filterManager.replaceHistory();
-    }, []);
-
-    useEffect(() => {
-        subscribed.current = true;
-        filterManager.pushHistory();
-        getData();
-        return () => {
-            subscribed.current = false;
-        };
-    }, [
-        filterManager.cleanSearchText(debounceFilterState.search), 
-        debounceFilterState.pagination.page, 
-        debounceFilterState.pagination.per_page, 
-        debounceFilterState.order,
-        JSON.stringify(debounceFilterState.extraFilter)
-    ]);
-
-    async function getData() {
+    const getData = useCallback(async ({search, page, per_page, sort, dir}) => {
         try {
             const {data} = await videoHttp.list<ListResponse<Video>>({
                 queryParams: {
-                    search: filterManager.cleanSearchText(filterState.search),
-                    page: filterState.pagination.page,
-                    per_page: filterState.pagination.per_page,
-                    sort: filterState.order.sort,
-                    dir: filterState.order.dir
+                    search,
+                    page,
+                    per_page,
+                    sort,
+                    dir
                 }
             });
             if(subscribed.current) {
@@ -164,12 +147,32 @@ const Table = () => {
             if(genreHttp.isCancelledRequest(error)) {
                return; 
             }
-            snackbar.enqueueSnackbar(
+            enqueueSnackbar(
                 'Nao foi possível carregar as informações',
                 {variant: 'error'}
             );
         }
-    }
+    }, [enqueueSnackbar, openDeleteDialog, setOpenDeleteDialog, setTotalRecords]);
+
+    useEffect(() => {
+        subscribed.current = true;
+        getData({
+            search: searchText,
+            page: debounceFilterState.pagination.page,
+            per_page: debounceFilterState.pagination.per_page,
+            sort: debounceFilterState.order.sort,
+            dir: debounceFilterState.order.dir
+        });
+        return () => {
+            subscribed.current = false;
+        };
+    }, [
+        getData,
+        searchText, 
+        debounceFilterState.pagination.page, 
+        debounceFilterState.pagination.per_page, 
+        debounceFilterState.order
+    ]);
 
     function deleteRows(confirmed: boolean) {
         if(!confirmed) {
@@ -183,7 +186,7 @@ const Table = () => {
         videoHttp
             .deleteCollection({ids})
             .then(response => {
-                snackbar.enqueueSnackbar('Registros excluido com sucesso', {
+                enqueueSnackbar('Registros excluido com sucesso', {
                     variant: 'success'
                 });
                 if( filterState.pagination.page > 1 
@@ -192,12 +195,18 @@ const Table = () => {
                     filterManager.changePage(page);
                 }
                 else {
-                    getData();
+                    getData({
+                        search: searchText,
+                        page: debounceFilterState.pagination.page,
+                        per_page: debounceFilterState.pagination.per_page,
+                        sort: debounceFilterState.order.sort,
+                        dir: debounceFilterState.order.dir
+                    });
                 }
             })
             .catch((error) => {
                 console.error(error);
-                snackbar.enqueueSnackbar(
+                enqueueSnackbar(
                     'Nao foi possivel excluir os registros',
                     {variant: 'error'}
                 );
