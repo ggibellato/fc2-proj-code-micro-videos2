@@ -48,4 +48,24 @@ steps:
 
 - id: "Rodando PHpunit"
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/backend/vendor/bin/phpunit', '-c', '/var/www/backend/phpunit.xml']    
+  args: ['exec', '-t', 'micro-videos-app', 'php', '/var/www/backend/vendor/bin/phpunit', '-c', '/var/www/backend/phpunit.xml']
+
+- id: "Copiando front-end .env"  
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'cp', '/var/www/frontend/.env.example', '/var/www/frontend/.env']
+
+- id: "Install front-end"
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'npm', 'install', '--prefix', '/var/www/frontend']
+
+- id: "Permission on scripts/build.sh"
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'chmod', '+x', '/var/www/frontend/scripts/build.sh']
+
+- id: "Build front-end"
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'npm', 'run', 'build-laravel', '--prefix', '/var/www/frontend']
+
+- id: "Test laravel and React Integration"
+  name: 'docker'
+  args: ['exec', '-w', '/var/www/backent', '-t', 'app', 'php', 'artisan', 'dusk', '--env=testing']

@@ -1,0 +1,6 @@
+{
+    "require-dev": {
+        "laravel/dusk": "^5.0.0",
+        "composer/composer": "^2.2"
+    }
+}
