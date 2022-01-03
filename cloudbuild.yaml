@@ -66,6 +66,10 @@ steps:
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'npm', 'run', 'build-laravel', '--prefix', '/var/www/frontend']
 
+- id: "Test laravel and React Integration - php artisan serve"
+  name: 'docker'
+  args: ['exec', '-w', '/var/www/backend', '-t', 'micro-videos-app', 'php', 'artisan', 'serve']
+
 - id: "Test laravel and React Integration"
   name: 'docker'
   args: ['exec', '-w', '/var/www/backend', '-t', 'micro-videos-app', 'php', 'artisan', 'dusk', '--env=testing']
