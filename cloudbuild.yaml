@@ -68,4 +68,4 @@ steps:
 
 - id: "Test laravel and React Integration"
   name: 'docker'
-  args: ['exec', '-w', '/var/www/backent', '-t', 'app', 'php', 'artisan', 'dusk', '--env=testing']
+  args: ['exec', '-w', '/var/www/backend', '-t', 'app', 'php', 'artisan', 'dusk', '--env=testing']
