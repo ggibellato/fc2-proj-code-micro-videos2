@@ -66,6 +66,10 @@ steps:
   name: 'docker'
   args: ['exec', '-t', 'micro-videos-app', 'npm', 'run', 'build-laravel', '--prefix', '/var/www/frontend']
 
+- id: "Copiando backend .env.dusk.testing.example to .env.dusk.testing"  
+  name: 'docker'
+  args: ['exec', '-t', 'micro-videos-app', 'cp', '/var/www/backend/.env.dusk.testing.example', '/var/www/frontend/.env.dusk.testing']
+
 - id: "Test laravel and React Integration"
   name: 'docker'
-  args: ['exec', '-w', '/var/www/backent', '-t', 'app', 'php', 'artisan', 'dusk', '--env=testing']
+  args: ['exec', '-w', '/var/www/backend', '-t', 'micro-videos-app', 'php', 'artisan', 'dusk', '--env=testing']
