@@ -68,7 +68,7 @@ steps:
 
 - id: "Copiando backend .env.dusk.testing.example to .env.dusk.testing"  
   name: 'docker'
-  args: ['exec', '-t', 'micro-videos-app', 'cp', '/var/www/backend/.env.dusk.testing.example', '/var/www/frontend/.env.dusk.testing']
+  args: ['exec', '-t', 'micro-videos-app', 'cp', '/var/www/backend/.env.dusk.testing.example', '/var/www/backend/.env.dusk.testing']
 
 - id: "Test laravel and React Integration"
   name: 'docker'
