@@ -6,7 +6,7 @@
 /vendor
 .env
 .env.backup
-#.env.dusk.testing
+.env.dusk.testing
 .env.testing
 .phpunit.result.cache
 Homestead.json
