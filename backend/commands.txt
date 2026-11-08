@@ -8,8 +8,6 @@ docker-compose exec db mysql --user=root --password code_micro_videos_test
 
 docker exec -it micro-videos-app bash
 
-
-
 ==============
 
 # CLI acessa os models usando php classes
